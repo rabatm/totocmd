@@ -1,103 +1,187 @@
-import Image from "next/image";
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/hooks/useAuth';
+import { BarChart3, Database, Package, Shield, Zap } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p>Chargement...</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return null; // Redirection en cours
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="container mx-auto px-6 py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-bold tracking-tight mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Toto CMD
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
+            Votre système de gestion des commandes moderne, sécurisé et intégré
+            avec Supabase. Gérez vos commandes, clients et produits en toute
+            simplicité.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button asChild size="lg">
+              <Link href="/login">Commencer maintenant</Link>
+            </Button>
+            <Button variant="outline" size="lg" asChild>
+              <Link href="/login">Se connecter</Link>
+            </Button>
+          </div>
+        </div>
+
+        {/* Fonctionnalités */}
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <Card className="text-center border-0 shadow-lg">
+            <CardHeader>
+              <div className="mx-auto mb-4 p-3 bg-blue-100 rounded-full w-fit">
+                <Shield className="h-8 w-8 text-blue-600" />
+              </div>
+              <CardTitle>Sécurisé</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Authentification robuste avec Supabase et protection des données
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center border-0 shadow-lg">
+            <CardHeader>
+              <div className="mx-auto mb-4 p-3 bg-green-100 rounded-full w-fit">
+                <Zap className="h-8 w-8 text-green-600" />
+              </div>
+              <CardTitle>Performance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Interface réactive et temps réel pour une expérience optimale
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center border-0 shadow-lg">
+            <CardHeader>
+              <div className="mx-auto mb-4 p-3 bg-purple-100 rounded-full w-fit">
+                <Database className="h-8 w-8 text-purple-600" />
+              </div>
+              <CardTitle>Intégré</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Synchronisation avec vos systèmes existants et API Extrabat
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Aperçu des fonctionnalités */}
+        <div className="grid md:grid-cols-2 gap-8">
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center text-xl">
+                <Package className="h-6 w-6 mr-3 text-blue-600" />
+                Gestion des commandes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                <span className="text-muted-foreground">
+                  Suivi en temps réel
+                </span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                <span className="text-muted-foreground">
+                  Statuts personnalisables
+                </span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                <span className="text-muted-foreground">
+                  Notifications automatiques
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center text-xl">
+                <BarChart3 className="h-6 w-6 mr-3 text-green-600" />
+                Tableau de bord
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                <span className="text-muted-foreground">
+                  Statistiques détaillées
+                </span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                <span className="text-muted-foreground">
+                  Rapports personnalisés
+                </span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                <span className="text-muted-foreground">
+                  Analyse des performances
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Call to action */}
+        <div className="text-center mt-16">
+          <Card className="max-w-2xl mx-auto border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
+            <CardContent className="p-8">
+              <h3 className="text-2xl font-bold mb-4">Prêt à commencer ?</h3>
+              <p className="text-muted-foreground mb-6">
+                Connectez-vous à votre compte pour accéder à toutes les
+                fonctionnalités
+              </p>
+              <Button
+                asChild
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600"
+              >
+                <Link href="/login">Accéder à l&apos;application</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

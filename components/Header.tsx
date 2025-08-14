@@ -1,0 +1,273 @@
+'use client';
+
+import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from '@/components/ui/navigation-menu';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  BarChart3,
+  Home,
+  LogOut,
+  Menu,
+  Package,
+  Settings,
+  User,
+  Users,
+} from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+
+export default function Header() {
+  const { isAuthenticated, user, logout, isLoading } = useAuth();
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between">
+        {/* Logo et nom */}
+        <div className="flex items-center space-x-3">
+          <div className="relative h-10 w-10">
+            <Image
+              src="/logo-toto-cmd.png"
+              alt="Logo Toto CMD"
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-xl font-bold text-primary">Toto CMD</h1>
+            <span className="text-xs text-muted-foreground">
+              Gestion des commandes
+            </span>
+          </div>
+        </div>
+
+        {/* Menu de navigation desktop - seulement si connecté */}
+        {isAuthenticated && (
+          <NavigationMenu className="hidden md:flex">
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link
+                    href="/dashboard"
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                  >
+                    <Home className="mr-2 h-4 w-4" />
+                    Tableau de bord
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>
+                  <Package className="mr-2 h-4 w-4" />
+                  Commandes
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <div className="grid gap-3 p-6 w-[400px]">
+                    <div className="row-span-3">
+                      <NavigationMenuLink asChild>
+                        <Link
+                          className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                          href="/commandes"
+                        >
+                          <Package className="h-6 w-6" />
+                          <div className="mb-2 mt-4 text-lg font-medium">
+                            Toutes les commandes
+                          </div>
+                          <p className="text-sm leading-tight text-muted-foreground">
+                            Voir et gérer toutes les commandes clients
+                          </p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </div>
+                    <div className="grid gap-2">
+                      <NavigationMenuLink asChild>
+                        <Link
+                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          href="/commandes/create"
+                        >
+                          <div className="text-sm font-medium leading-none">
+                            ➕ Nouvelle commande
+                          </div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Créer une nouvelle commande client
+                          </p>
+                        </Link>
+                      </NavigationMenuLink>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          href="/commandes?status=en_cours"
+                        >
+                          <div className="text-sm font-medium leading-none">
+                            En cours
+                          </div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Commandes en cours de traitement
+                          </p>
+                        </Link>
+                      </NavigationMenuLink>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          href="/commandes?status=pret_expedition"
+                        >
+                          <div className="text-sm font-medium leading-none">
+                            Prêtes
+                          </div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Commandes prêtes pour expédition
+                          </p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </div>
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link
+                    href="/produits"
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                  >
+                    <Package className="mr-2 h-4 w-4" />
+                    Produits
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link
+                    href="/clients"
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                  >
+                    <Users className="mr-2 h-4 w-4" />
+                    Clients
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        )}
+
+        {/* Actions utilisateur */}
+        <div className="flex items-center space-x-2">
+          {!isLoading && (
+            <>
+              {isAuthenticated ? (
+                <>
+                  {/* Menu mobile pour utilisateurs connectés */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild className="md:hidden">
+                      <Button variant="outline" size="icon">
+                        <Menu className="h-4 w-4" />
+                        <span className="sr-only">Menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard" className="flex items-center">
+                          <BarChart3 className="mr-2 h-4 w-4" />
+                          Tableau de bord
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/commandes" className="flex items-center">
+                          <Package className="mr-2 h-4 w-4" />
+                          Commandes
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/produits" className="flex items-center">
+                          <Package className="mr-2 h-4 w-4" />
+                          Produits
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/clients" className="flex items-center">
+                          <Users className="mr-2 h-4 w-4" />
+                          Clients
+                        </Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Menu utilisateur */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="relative h-10 w-10 rounded-full"
+                      >
+                        <Avatar className="h-10 w-10">
+                          <div className="flex h-full w-full items-center justify-center bg-muted">
+                            <User className="h-4 w-4" />
+                          </div>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <div className="flex items-center justify-start gap-2 p-2">
+                        <div className="flex flex-col space-y-1 leading-none">
+                          {user?.email && (
+                            <p className="font-medium">{user.email}</p>
+                          )}
+                          <p className="w-[200px] truncate text-sm text-muted-foreground">
+                            Connecté
+                          </p>
+                        </div>
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile" className="flex items-center">
+                          <User className="mr-2 h-4 w-4" />
+                          Profil
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/settings" className="flex items-center">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Paramètres
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={logout}
+                        className="text-red-600 focus:text-red-600"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Déconnexion
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              ) : (
+                /* Bouton de connexion pour utilisateurs non connectés */
+                <Button asChild>
+                  <Link href="/login">Se connecter</Link>
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
