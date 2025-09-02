@@ -66,13 +66,16 @@ export const ProductSelect: React.FC<ProductSelectProps> = ({
   const getStockStatus = (produit: Produit) => {
     if (!produit.tenue_stock) return null;
 
-    if (produit.stock_physique <= 0) {
+    if ((produit.stock_physique ?? 0) <= 0) {
       return { label: 'Rupture', color: 'bg-red-500' };
     }
-    if (produit.stock_physique <= (produit.stock_mini || 0)) {
+    if ((produit.stock_physique ?? 0) <= (produit.stock_mini || 0)) {
       return { label: 'Stock faible', color: 'bg-orange-500' };
     }
-    return { label: `Stock: ${produit.stock_physique}`, color: 'bg-green-500' };
+    return {
+      label: `Stock: ${produit.stock_physique ?? 0}`,
+      color: 'bg-green-500',
+    };
   };
 
   return (

@@ -4,8 +4,10 @@ import AddProduitDialog from '@/components/AddProduitDialogV2';
 import ClientName from '@/components/ClientName';
 import CommandeStatusSelect from '@/components/CommandeStatusSelect';
 import EditProduitDialog from '@/components/EditProduitDialog';
+import PrintLabel from '@/components/PrintLabel';
 import ProduitActions from '@/components/ProduitActions';
 import ProduitStatusSelect from '@/components/ProduitStatusSelect';
+import ShopConfigDialog from '@/components/ShopConfigDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -83,14 +85,6 @@ export default function CommandeDetailPage({
     return new Date(dateString).toLocaleString('fr-FR');
   };
 
-  const formatCurrency = (amount: number | null) => {
-    if (amount === null) return '-';
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount);
-  };
-
   if (isLoading) {
     return (
       <div className="container mx-auto p-6">
@@ -132,36 +126,43 @@ export default function CommandeDetailPage({
 
   return (
     <div className="container mx-auto p-6">
-      {/* En-tête avec navigation */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
+      <div className="mb-4">
+        <div className="flex items-center justify-between">
           <Link href="/commandes">
             <Button variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
+              Retour aux commandes
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Commande #{commande.numero_commande}
-            </h1>
-            <div className="flex items-center space-x-4 mt-2">
-              <CommandeStatusSelect
-                commandeId={commande.id}
-                currentStatus={commande.etat}
-              />
-            </div>
+          <div className="flex items-center gap-2">
+            <ShopConfigDialog />
+            {commande && <PrintLabel commande={commande} />}
           </div>
         </div>
       </div>
-
-      <div className="grid gap-6">
-        {/* Informations générales */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Informations commande */}
-          <Card>
+      <Card className="shadow-xl bg-gradient-to-br from-blue-50 via-white to-orange-50 rounded-2xl border-0 p-6">
+        <div className="space-y-6">
+          {/* Bloc fusionné : client, numéro, statut */}
+          <Card className="rounded-xl shadow bg-white">
             <CardHeader>
-              <CardTitle>Détails de la commande</CardTitle>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                <div className="flex items-center gap-4">
+                  <span className="text-lg font-bold text-blue-900">
+                    {commande && <ClientName clientId={commande.client_id} />}
+                  </span>
+                  <span className="text-sm text-gray-500 bg-gray-100 rounded px-2 py-1">
+                    N° {commande?.numero_commande.toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  {commande && (
+                    <CommandeStatusSelect
+                      commandeId={commande.id}
+                      currentStatus={commande.etat}
+                    />
+                  )}
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -171,7 +172,7 @@ export default function CommandeDetailPage({
                   </label>
                   <div className="flex items-center mt-1">
                     <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                    {formatDate(commande.date_commande)}
+                    {formatDate(commande?.date_commande)}
                   </div>
                 </div>
                 <div>
@@ -180,70 +181,34 @@ export default function CommandeDetailPage({
                   </label>
                   <div className="flex items-center mt-1">
                     <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                    {formatDate(commande.date_limite_expedition)}
+                    {formatDate(commande?.date_limite_expedition)}
                   </div>
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Total TTC
-                  </label>
-                  <div className="text-xl font-bold">
-                    {formatCurrency(commande.total_ttc)}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Acompte versé
-                  </label>
-                  <div className="text-lg font-medium">
-                    {formatCurrency(commande.acompte_verse)}
-                  </div>
-                </div>
-              </div>
-
-              {commande.total_ht && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">
-                      Total HT
-                    </label>
-                    <div className="font-medium">
-                      {formatCurrency(commande.total_ht)}
-                    </div>
-                  </div>
-                  {commande.total_tva && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">
-                        TVA
-                      </label>
-                      <div className="font-medium">
-                        {formatCurrency(commande.total_tva)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
               <div className="flex items-center space-x-2">
                 <label className="text-sm font-medium text-gray-500">
                   Progression
                 </label>
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${calculatedProgression}%` }}
+                    className="h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${calculatedProgression}%`,
+                      background:
+                        calculatedProgression < 50
+                          ? 'linear-gradient(90deg, #3b82f6 0%, #60a5fa 50%, #22c55e 100%)'
+                          : calculatedProgression < 100
+                          ? 'linear-gradient(90deg, #22c55e 0%, #4ade80 60%, #a78bfa 100%)'
+                          : 'linear-gradient(90deg, #6366f1 0%, #a78bfa 50%, #f59e42 100%)',
+                    }}
                   />
                 </div>
                 <span className="text-sm font-medium">
                   {calculatedProgression}%
                 </span>
               </div>
-
               {/* Détail des statuts */}
-              {commande.commande_produits &&
+              {commande?.commande_produits &&
                 commande.commande_produits.length > 0 && (
                   <div className="mt-2">
                     <div className="flex flex-wrap gap-2 text-xs">
@@ -275,8 +240,7 @@ export default function CommandeDetailPage({
                     </div>
                   </div>
                 )}
-
-              {commande.mode_reglement && (
+              {commande?.mode_reglement && (
                 <div>
                   <label className="text-sm font-medium text-gray-500">
                     Mode de règlement
@@ -284,8 +248,7 @@ export default function CommandeDetailPage({
                   <div className="mt-1">{commande.mode_reglement}</div>
                 </div>
               )}
-
-              {commande.remarque && (
+              {commande?.remarque && (
                 <div>
                   <label className="text-sm font-medium text-gray-500">
                     Remarques
@@ -297,96 +260,84 @@ export default function CommandeDetailPage({
               )}
             </CardContent>
           </Card>
-
-          {/* Informations client */}
-          <Card>
+          {/* Liste des produits */}
+          <Card className="rounded-xl shadow bg-white">
             <CardHeader>
-              <CardTitle>Informations client</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-blue-900">
+                  Produits ({commande?.commande_produits?.length || 0})
+                </CardTitle>
+                {commande && <AddProduitDialog commandeId={commande.id} />}
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <ClientName clientId={commande.client_id} />
+            <CardContent>
+              {commande?.commande_produits &&
+              commande.commande_produits.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Produit</TableHead>
+                      <TableHead>Code produit</TableHead>
+                      <TableHead>N° de série</TableHead>
+                      <TableHead>Quantité</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Date scan</TableHead>
+                      <TableHead>Remarques</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {commande.commande_produits.map(
+                      (produit: CommandeProduit) => (
+                        <TableRow key={produit.id}>
+                          <TableCell className="font-medium">
+                            {produit.nom_produit}
+                          </TableCell>
+                          <TableCell>{produit.code_produit || '-'}</TableCell>
+                          <TableCell>{produit.numero_serie || '-'}</TableCell>
+                          <TableCell>{produit.quantite}</TableCell>
+                          <TableCell>
+                            <ProduitStatusSelect
+                              produitId={produit.id}
+                              commandeId={commande.id}
+                              currentStatus={produit.statut}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {formatDateTime(produit.date_scan)}
+                          </TableCell>
+                          <TableCell>{produit.remarque || '-'}</TableCell>
+                          <TableCell>
+                            <ProduitActions
+                              produitId={produit.id}
+                              commandeId={commande.id}
+                              produitName={produit.nom_produit}
+                              onEdit={() => setEditingProduit(produit)}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ),
+                    )}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  Aucun produit dans cette commande
+                </div>
+              )}
             </CardContent>
           </Card>
+          {/* Dialog d'édition de produit */}
+          {editingProduit && commande && (
+            <EditProduitDialog
+              open={!!editingProduit}
+              onOpenChange={open => !open && setEditingProduit(null)}
+              produit={editingProduit}
+              commandeId={commande.id}
+            />
+          )}
         </div>
-
-        {/* Liste des produits */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>
-                Produits ({commande.commande_produits?.length || 0})
-              </CardTitle>
-              <AddProduitDialog commandeId={commande.id} />
-            </div>
-          </CardHeader>
-          <CardContent>
-            {commande.commande_produits &&
-            commande.commande_produits.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Produit</TableHead>
-                    <TableHead>Code produit</TableHead>
-                    <TableHead>N° de série</TableHead>
-                    <TableHead>Quantité</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Date scan</TableHead>
-                    <TableHead>Remarques</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {commande.commande_produits.map(
-                    (produit: CommandeProduit) => (
-                      <TableRow key={produit.id}>
-                        <TableCell className="font-medium">
-                          {produit.nom_produit}
-                        </TableCell>
-                        <TableCell>{produit.code_produit || '-'}</TableCell>
-                        <TableCell>{produit.numero_serie || '-'}</TableCell>
-                        <TableCell>{produit.quantite}</TableCell>
-                        <TableCell>
-                          <ProduitStatusSelect
-                            produitId={produit.id}
-                            commandeId={commande.id}
-                            currentStatus={produit.statut}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {formatDateTime(produit.date_scan)}
-                        </TableCell>
-                        <TableCell>{produit.remarque || '-'}</TableCell>
-                        <TableCell>
-                          <ProduitActions
-                            produitId={produit.id}
-                            commandeId={commande.id}
-                            produitName={produit.nom_produit}
-                            onEdit={() => setEditingProduit(produit)}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ),
-                  )}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                Aucun produit dans cette commande
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Dialog d'édition de produit */}
-      {editingProduit && (
-        <EditProduitDialog
-          open={!!editingProduit}
-          onOpenChange={open => !open && setEditingProduit(null)}
-          produit={editingProduit}
-          commandeId={commande.id}
-        />
-      )}
+      </Card>
     </div>
   );
 }

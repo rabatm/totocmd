@@ -6,15 +6,40 @@ import { useEffect } from 'react';
 
 export const useAuth = () => {
   const router = useRouter();
-  const authStore = useAuthStore();
+  const {
+    user,
+    session,
+    isLoading,
+    isAuthenticated,
+    error,
+    signIn,
+    signOut,
+    signUp,
+    resetPassword: storeResetPassword,
+    initializeAuth,
+    clearError,
+  } = useAuthStore();
 
-  // Initialiser l'authentification au premier rendu
+  // Initialiser l'authentification au premier rendu - une seule fois
   useEffect(() => {
-    authStore.initializeAuth();
-  }, [authStore]);
+    let isMounted = true;
+
+    const initialize = async () => {
+      if (isMounted) {
+        await initializeAuth();
+      }
+    };
+
+    initialize();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Tableau vide pour n'exécuter qu'une fois
 
   const requireAuth = () => {
-    if (!authStore.isAuthenticated && !authStore.isLoading) {
+    if (!isAuthenticated && !isLoading) {
+      console.log('Utilisateur non authentifié, redirection vers /login');
       router.push('/login');
       return false;
     }
@@ -22,7 +47,7 @@ export const useAuth = () => {
   };
 
   const redirectIfAuthenticated = (redirectTo: string = '/dashboard') => {
-    if (authStore.isAuthenticated && !authStore.isLoading) {
+    if (isAuthenticated && !isLoading) {
       router.push(redirectTo);
       return true;
     }
@@ -30,12 +55,12 @@ export const useAuth = () => {
   };
 
   const logout = async () => {
-    await authStore.signOut();
+    await signOut();
     router.push('/login');
   };
 
   const login = async (email: string, password: string) => {
-    const result = await authStore.signIn(email, password);
+    const result = await signIn(email, password);
     if (result.success) {
       router.push('/dashboard');
     }
@@ -47,20 +72,20 @@ export const useAuth = () => {
     password: string,
     userData?: Record<string, unknown>,
   ) => {
-    return await authStore.signUp(email, password, userData);
+    return await signUp(email, password, userData);
   };
 
   const resetPassword = async (email: string) => {
-    return await authStore.resetPassword(email);
+    return await storeResetPassword(email);
   };
 
   return {
     // État
-    user: authStore.user,
-    session: authStore.session,
-    isLoading: authStore.isLoading,
-    isAuthenticated: authStore.isAuthenticated,
-    error: authStore.error,
+    user,
+    session,
+    isLoading,
+    isAuthenticated: !!user,
+    error,
 
     // Actions
     login,
@@ -69,11 +94,11 @@ export const useAuth = () => {
     resetPassword,
     requireAuth,
     redirectIfAuthenticated,
-    clearError: authStore.clearError,
+    clearError,
 
     // Actions directes du store (pour compatibilité)
-    signIn: authStore.signIn,
-    signOut: authStore.signOut,
-    signUp: authStore.signUp,
+    signIn,
+    signOut,
+    signUp,
   };
 };

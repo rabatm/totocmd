@@ -28,12 +28,6 @@ export default function ClientName({ clientId }: ClientNameProps) {
   return (
     <div>
       <div className="font-medium">{client.name}</div>
-      {client.city && (
-        <div className="text-sm text-gray-500">{client.city}</div>
-      )}
-      {client.email && (
-        <div className="text-xs text-gray-400">{client.email}</div>
-      )}
     </div>
   );
 }

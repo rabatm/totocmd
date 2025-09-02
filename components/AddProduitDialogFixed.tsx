@@ -34,7 +34,7 @@ function AddProduitDialogFixed({ commandeId }: AddProduitDialogFixedProps) {
     code_produit: '',
     numero_serie: '',
     quantite: 1,
-    statut: ProduitStatus.SCANNE as string,
+    statut: ProduitStatus.RESERVE as string,
     remarque: '',
   });
 
@@ -66,7 +66,7 @@ function AddProduitDialogFixed({ commandeId }: AddProduitDialogFixedProps) {
         code_produit: '',
         numero_serie: '',
         quantite: 1,
-        statut: ProduitStatus.SCANNE as string,
+        statut: ProduitStatus.RESERVE as string,
         remarque: '',
       });
       setOpen(false);
@@ -148,7 +148,7 @@ function AddProduitDialogFixed({ commandeId }: AddProduitDialogFixedProps) {
                 <SelectValue placeholder="Sélectionner un statut" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ProduitStatus.SCANNE}>Scanné</SelectItem>
+                <SelectItem value={ProduitStatus.RESERVE}>Réservé</SelectItem>
                 <SelectItem value={ProduitStatus.EN_PREPARATION}>
                   En préparation
                 </SelectItem>

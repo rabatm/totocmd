@@ -1,16 +1,7 @@
 'use client';
 
+import { ProductSelect } from '@/components/ProductSelect';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -18,10 +9,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { ProductSelect } from '@/components/ProductSelect';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useAddProduit } from '@/hooks/useProduitMutations';
-import { ProduitStatus, Produit } from '@/src/types';
-import { Plus, Loader2 } from 'lucide-react';
+import { Produit, ProduitStatus } from '@/src/types';
+import { Loader2, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 interface AddProduitDialogProps {
@@ -37,7 +37,7 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
     code_produit: '',
     numero_serie: '',
     quantite: 1,
-    statut: ProduitStatus.SCANNE as string,
+    statut: ProduitStatus.RESERVE as string,
     remarque: '',
   });
 
@@ -45,7 +45,7 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!manualMode && !selectedProduit) {
       alert('Veuillez sélectionner un produit du catalogue');
       return;
@@ -60,8 +60,12 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
       await addProduit.mutateAsync({
         commande_id: commandeId,
         personnel_id: 1,
-        nom_produit: manualMode ? formData.nom_produit : selectedProduit!.libelle,
-        code_produit: manualMode ? formData.code_produit || undefined : selectedProduit!.code || undefined,
+        nom_produit: manualMode
+          ? formData.nom_produit
+          : selectedProduit!.libelle,
+        code_produit: manualMode
+          ? formData.code_produit || undefined
+          : selectedProduit!.code || undefined,
         numero_serie: formData.numero_serie || undefined,
         quantite: formData.quantite,
         statut: formData.statut,
@@ -76,13 +80,13 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
         code_produit: '',
         numero_serie: '',
         quantite: 1,
-        statut: ProduitStatus.SCANNE,
+        statut: ProduitStatus.RESERVE,
         remarque: '',
       });
       setOpen(false);
     } catch (error) {
-      console.error('Erreur lors de l\'ajout:', error);
-      alert('Erreur lors de l\'ajout du produit');
+      console.error("Erreur lors de l'ajout:", error);
+      alert("Erreur lors de l'ajout du produit");
     }
   };
 
@@ -116,7 +120,7 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
                   code_produit: '',
                   numero_serie: '',
                   quantite: 1,
-                  statut: ProduitStatus.SCANNE,
+                  statut: ProduitStatus.RESERVE,
                   remarque: '',
                 });
               }}
@@ -131,7 +135,7 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
               <Label htmlFor="produit">Produit du catalogue *</Label>
               <ProductSelect
                 value={selectedProduit?.id}
-                onSelect={(produit) => setSelectedProduit(produit)}
+                onSelect={produit => setSelectedProduit(produit)}
                 placeholder="Sélectionner un produit du catalogue..."
                 showStock={true}
                 className="mt-1"
@@ -139,7 +143,9 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
               {selectedProduit && (
                 <div className="mt-2 p-3 bg-gray-50 rounded-md">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">{selectedProduit.libelle}</span>
+                    <span className="font-medium">
+                      {selectedProduit.libelle}
+                    </span>
                     <span className="text-sm text-gray-600">
                       {new Intl.NumberFormat('fr-FR', {
                         style: 'currency',
@@ -148,7 +154,9 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
                     </span>
                   </div>
                   {selectedProduit.description && (
-                    <p className="text-sm text-gray-600">{selectedProduit.description}</p>
+                    <p className="text-sm text-gray-600">
+                      {selectedProduit.description}
+                    </p>
                   )}
                   <div className="flex items-center gap-2 mt-2">
                     {selectedProduit.code && (
@@ -180,8 +188,9 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
                 <Input
                   id="nom_produit"
                   value={formData.nom_produit}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                    setFormData({ ...formData, nom_produit: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormData({ ...formData, nom_produit: e.target.value })
+                  }
                   placeholder="Ex: Produit personnalisé"
                   required
                 />
@@ -191,8 +200,9 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
                 <Input
                   id="code_produit"
                   value={formData.code_produit}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                    setFormData({ ...formData, code_produit: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormData({ ...formData, code_produit: e.target.value })
+                  }
                   placeholder="Ex: CUSTOM-001"
                 />
               </div>
@@ -205,8 +215,9 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
               <Input
                 id="numero_serie"
                 value={formData.numero_serie}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                  setFormData({ ...formData, numero_serie: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setFormData({ ...formData, numero_serie: e.target.value })
+                }
                 placeholder="Ex: SN001"
               />
             </div>
@@ -217,26 +228,35 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
                 type="number"
                 min="1"
                 value={formData.quantite}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                  setFormData({ ...formData, quantite: parseInt(e.target.value) || 1 })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setFormData({
+                    ...formData,
+                    quantite: parseInt(e.target.value) || 1,
+                  })
+                }
               />
             </div>
           </div>
 
           <div>
             <Label htmlFor="statut">Statut</Label>
-            <Select 
-              value={formData.statut} 
-              onValueChange={(value: string) => 
-                setFormData({ ...formData, statut: value })}
+            <Select
+              value={formData.statut}
+              onValueChange={(value: string) =>
+                setFormData({ ...formData, statut: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ProduitStatus.SCANNE}>Scanné</SelectItem>
-                <SelectItem value={ProduitStatus.EN_PREPARATION}>En préparation</SelectItem>
-                <SelectItem value={ProduitStatus.PRET_EXPEDITION}>Prêt expédition</SelectItem>
+                <SelectItem value={ProduitStatus.RESERVE}>Réservé</SelectItem>
+                <SelectItem value={ProduitStatus.EN_PREPARATION}>
+                  En préparation
+                </SelectItem>
+                <SelectItem value={ProduitStatus.PRET_EXPEDITION}>
+                  Prêt expédition
+                </SelectItem>
                 <SelectItem value={ProduitStatus.EXPEDIE}>Expédié</SelectItem>
                 <SelectItem value={ProduitStatus.LIVRE}>Livré</SelectItem>
               </SelectContent>
@@ -248,19 +268,26 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
             <Textarea
               id="remarque"
               value={formData.remarque}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => 
-                setFormData({ ...formData, remarque: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setFormData({ ...formData, remarque: e.target.value })
+              }
               placeholder="Remarques optionnelles..."
               rows={3}
             />
           </div>
 
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Annuler
             </Button>
             <Button type="submit" disabled={addProduit.isPending}>
-              {addProduit.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {addProduit.isPending && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Ajouter
             </Button>
           </div>

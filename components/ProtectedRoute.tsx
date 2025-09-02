@@ -2,26 +2,29 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode } from 'react';
 
 interface ProtectedRouteProps {
   children: ReactNode;
   fallback?: ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  children,
-  fallback,
-}) => {
-  const { isAuthenticated, isLoading, requireAuth } = useAuth();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = props => {
+  const { children, fallback } = props;
+  const { isAuthenticated, isLoading, user } = useAuth();
 
-  useEffect(() => {
-    if (!isLoading) {
-      requireAuth();
-    }
-  }, [isLoading, requireAuth]);
+  console.log(
+    '[ProtectedRoute] isAuthenticated:',
+    isAuthenticated,
+    'user:',
+    user,
+    'isLoading:',
+    isLoading,
+  );
 
-  if (isLoading) {
+  // Attendre que le chargement soit terminé ET que user soit défini ou null
+  if (isLoading || typeof user === 'undefined') {
+    console.log('[ProtectedRoute] Loader rendu');
     return (
       fallback || (
         <div className="flex items-center justify-center min-h-screen">
@@ -34,16 +37,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>Redirection vers la page de connexion...</p>
-        </div>
-      </div>
+  if (!isAuthenticated && !isLoading) {
+    console.log(
+      '[ProtectedRoute] Utilisateur non authentifié, redirection vers /login',
     );
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+    return null;
   }
 
+  console.log(
+    '[ProtectedRoute] Utilisateur authentifié, affichage du contenu.',
+  );
   return <>{children}</>;
 };
 

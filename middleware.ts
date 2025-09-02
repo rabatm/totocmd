@@ -60,24 +60,8 @@ export async function middleware(request: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // Routes publiques qui ne nécessitent pas d'authentification
-  const publicRoutes = ['/login', '/'];
-  const isPublicRoute = publicRoutes.includes(request.nextUrl.pathname);
-
-  // Si l'utilisateur n'est pas connecté et tente d'accéder à une route protégée
-  if (!session && !isPublicRoute) {
-    const redirectUrl = new URL('/login', request.url);
-    // Ajouter l'URL de retour pour rediriger après connexion
-    redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname);
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  // Si l'utilisateur est connecté et tente d'accéder à la page de login
-  if (session && request.nextUrl.pathname === '/login') {
-    const redirectTo =
-      request.nextUrl.searchParams.get('redirectTo') || '/dashboard';
-    return NextResponse.redirect(new URL(redirectTo, request.url));
-  }
+  // Désactivation de la protection : toutes les routes sont publiques
+  // (Tu peux réactiver la logique plus tard si besoin)
 
   return response;
 }

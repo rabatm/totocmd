@@ -31,7 +31,13 @@ export interface Commande {
   date_commande?: string;
   date_limite_expedition?: string;
   acompte_verse: number;
-  etat: 'en_attente' | 'en_cours' | 'pret_expedition' | 'expedie' | 'annule';
+  etat:
+    | 'en_attente'
+    | 'en_attente_dacompte'
+    | 'en_cours'
+    | 'pret_expedition'
+    | 'expedie'
+    | 'annule';
   progression: number;
   expedition_id?: number;
   remarque?: string;
@@ -52,7 +58,13 @@ export interface CommandeProduit {
   code_produit?: string;
   numero_serie?: string;
   quantite: number;
-  statut: 'scanne' | 'en_preparation' | 'pret_expedition' | 'expedie' | 'livre';
+  statut:
+    | 'scanne'
+    | 'reserve'
+    | 'en_preparation'
+    | 'pret_expedition'
+    | 'expedie'
+    | 'livre';
   date_scan: string;
   remarque?: string;
   created_at?: string;
@@ -84,6 +96,7 @@ export interface CreateCommandeInput {
 // Status helpers
 export const CommandeStatus = {
   EN_ATTENTE: 'en_attente' as const,
+  EN_ATTENTE_DACOMPTE: 'en_attente_dacompte' as const,
   EN_COURS: 'en_cours' as const,
   PRET_EXPEDITION: 'pret_expedition' as const,
   EXPEDIE: 'expedie' as const,
@@ -92,6 +105,7 @@ export const CommandeStatus = {
 
 export const ProduitStatus = {
   SCANNE: 'scanne' as const,
+  RESERVE: 'reserve' as const,
   EN_PREPARATION: 'en_preparation' as const,
   PRET_EXPEDITION: 'pret_expedition' as const,
   EXPEDIE: 'expedie' as const,
@@ -164,6 +178,8 @@ export interface Produit {
   prix_mini?: number;
   prix_conseille?: number;
   tenue_stock: boolean;
+  stock_physique?: number;
+  stock_mini?: number;
   // stock_physique: number; // Temporairement commenté car colonne manquante
   // stock_mini?: number; // Temporairement commenté car colonne manquante
   // stock_maxi?: number; // Temporairement commenté car colonne manquante
@@ -182,6 +198,7 @@ export interface Produit {
   has_image: boolean;
   has_image_gd: boolean;
   last_sync: string;
+  archived?: boolean;
   // archived: boolean; // Temporairement commenté car colonne manquante
   // is_manuel: boolean; // Temporairement commenté car colonne manquante
   created_at?: string;

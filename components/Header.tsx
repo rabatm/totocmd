@@ -35,22 +35,24 @@ export default function Header() {
   const { isAuthenticated, user, logout, isLoading } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-50 w-full border-b bg-gradient-to-r from-blue-50 via-white to-orange-50 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-24 items-center justify-between">
         {/* Logo et nom */}
-        <div className="flex items-center space-x-3">
-          <div className="relative h-10 w-10">
+        <div className="flex items-center gap-6">
+          <div className="relative h-20 w-20 drop-shadow-xl">
             <Image
               src="/logo-toto-cmd.png"
               alt="Logo Toto CMD"
-              width={40}
-              height={40}
-              className="rounded-full"
+              width={80}
+              height={80}
+              priority
             />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-xl font-bold text-primary">Toto CMD</h1>
-            <span className="text-xs text-muted-foreground">
+            <h1 className="text-3xl font-extrabold text-blue-900 mb-1">
+              Toto CMD
+            </h1>
+            <span className="text-base text-orange-600 font-semibold">
               Gestion des commandes
             </span>
           </div>

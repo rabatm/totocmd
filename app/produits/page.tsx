@@ -50,7 +50,6 @@ import {
   Plus,
   RefreshCw,
   Search,
-  Trash2,
   TrendingUp,
   Upload,
 } from 'lucide-react';
@@ -123,18 +122,6 @@ export default function ProduitsPage() {
   const getStockBadge = (produit: Produit) => {
     if (!produit.tenue_stock) {
       return <Badge variant="secondary">Hors stock</Badge>;
-    }
-
-    if (produit.stock_physique <= 0) {
-      return <Badge variant="destructive">Rupture</Badge>;
-    }
-
-    if (produit.stock_physique <= (produit.stock_mini || 0)) {
-      return (
-        <Badge variant="secondary" className="bg-orange-500 text-white">
-          Stock faible
-        </Badge>
-      );
     }
 
     return <Badge variant="default">{produit.stock_physique}</Badge>;
@@ -378,9 +365,6 @@ export default function ProduitsPage() {
                         {produit.archived && (
                           <Badge variant="secondary">Archivé</Badge>
                         )}
-                        {produit.is_manuel && (
-                          <Badge variant="outline">Manuel</Badge>
-                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -410,15 +394,6 @@ export default function ProduitsPage() {
                             <Archive className="mr-2 h-4 w-4" />
                             {produit.archived ? 'Désarchiver' : 'Archiver'}
                           </DropdownMenuItem>
-                          {produit.is_manuel && (
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(produit.id)}
-                              className="text-destructive"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
-                            </DropdownMenuItem>
-                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

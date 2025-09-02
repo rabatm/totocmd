@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateCommande } from '@/hooks/useCommandeMutations';
-import { ArrowLeft, Euro, Loader2, Plus, Save } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, Save } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -38,27 +38,7 @@ export default function CreateCommandePage() {
     return `CMD-${year}-${month}-${timestamp}`;
   };
 
-  // Calcul automatique de la TVA (20%)
-  const calculateTVA = (totalHT: number) => {
-    return totalHT * 0.2;
-  };
-
-  // Calcul automatique du TTC
-  const calculateTTC = (totalHT: number) => {
-    return totalHT + calculateTVA(totalHT);
-  };
-
-  const handleTotalHTChange = (value: number) => {
-    const tva = calculateTVA(value);
-    const ttc = calculateTTC(value);
-
-    setFormData(prev => ({
-      ...prev,
-      total_ht: value,
-      total_tva: tva,
-      total_ttc: ttc,
-    }));
-  };
+  // ...existing code...
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,10 +53,7 @@ export default function CreateCommandePage() {
       return;
     }
 
-    if (formData.total_ttc <= 0) {
-      alert('Veuillez saisir un montant valide');
-      return;
-    }
+    // ...existing code...
 
     try {
       const newCommande = await createCommande.mutateAsync({
@@ -227,99 +204,6 @@ export default function CreateCommandePage() {
                   placeholder="Virement, Chèque, Espèces..."
                 />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Informations financières */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Euro className="h-5 w-5 mr-2" />
-                Informations financières
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                {/* Total HT */}
-                <div className="space-y-2">
-                  <Label htmlFor="total_ht">Total HT *</Label>
-                  <Input
-                    id="total_ht"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.total_ht || ''}
-                    onChange={e =>
-                      handleTotalHTChange(parseFloat(e.target.value) || 0)
-                    }
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-
-                {/* TVA (calculée automatiquement) */}
-                <div className="space-y-2">
-                  <Label htmlFor="total_tva">TVA (20%)</Label>
-                  <Input
-                    id="total_tva"
-                    type="number"
-                    step="0.01"
-                    value={formData.total_tva.toFixed(2)}
-                    readOnly
-                    className="bg-gray-50"
-                  />
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                {/* Total TTC */}
-                <div className="space-y-2">
-                  <Label htmlFor="total_ttc">Total TTC *</Label>
-                  <Input
-                    id="total_ttc"
-                    type="number"
-                    step="0.01"
-                    value={formData.total_ttc.toFixed(2)}
-                    readOnly
-                    className="bg-gray-50 font-bold text-lg"
-                  />
-                </div>
-
-                {/* Acompte versé */}
-                <div className="space-y-2">
-                  <Label htmlFor="acompte_verse">Acompte versé</Label>
-                  <Input
-                    id="acompte_verse"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max={formData.total_ttc}
-                    value={formData.acompte_verse || ''}
-                    onChange={e =>
-                      setFormData(prev => ({
-                        ...prev,
-                        acompte_verse: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-              </div>
-
-              {/* Solde restant */}
-              {formData.total_ttc > 0 && (
-                <div className="p-3 bg-blue-50 rounded-md">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium text-blue-900">
-                      Solde restant :
-                    </span>
-                    <span className="text-lg font-bold text-blue-900">
-                      {(formData.total_ttc - formData.acompte_verse).toFixed(2)}{' '}
-                      €
-                    </span>
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
 

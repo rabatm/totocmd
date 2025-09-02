@@ -13,10 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
-export default function LoginPage() {
+// Composant enfant qui utilise useSearchParams
+function LoginFormContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -24,54 +25,55 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { signIn, signUp, isAuthenticated, redirectIfAuthenticated } =
-    useAuth();
+  const {
+    signIn,
+    signUp,
+    isAuthenticated,
+    isLoading: authLoading,
+    user,
+    session,
+  } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirectTo') || '/dashboard';
 
-  // Rediriger si déjà connecté
-  if (redirectIfAuthenticated('/dashboard')) {
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      router.push(redirectTo);
+    }
+  }, [isAuthenticated, authLoading, router, redirectTo]);
 
   const validateForm = () => {
     if (!email.trim()) {
       setError("L'email est requis");
       return false;
     }
-
     if (!email.includes('@')) {
       setError("Format d'email invalide");
       return false;
     }
-
     if (!password.trim()) {
       setError('Le mot de passe est requis');
       return false;
     }
-
     if (isSignUp && password.length < 6) {
       setError('Le mot de passe doit contenir au moins 6 caractères');
       return false;
     }
-
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
     if (!validateForm()) {
       return;
     }
-
     setLoading(true);
-
     try {
       const result = isSignUp
         ? await signUp(email.trim(), password)
         : await signIn(email.trim(), password);
-
       if (result.success) {
         if (isSignUp) {
           setError('');
@@ -80,7 +82,7 @@ export default function LoginPage() {
           );
           setIsSignUp(false);
         } else {
-          router.push('/dashboard');
+          router.push(redirectTo);
         }
       } else {
         setError(result.error || 'Une erreur est survenue');
@@ -112,7 +114,6 @@ export default function LoginPage() {
               : 'Connectez-vous à votre compte TotoCmd'}
           </CardDescription>
         </CardHeader>
-
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -120,7 +121,6 @@ export default function LoginPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -134,7 +134,6 @@ export default function LoginPage() {
                 autoComplete="email"
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="password">Mot de passe</Label>
               <div className="relative">
@@ -166,7 +165,6 @@ export default function LoginPage() {
                 </Button>
               </div>
             </div>
-
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <>
@@ -180,7 +178,6 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-
           <div className="mt-4 text-center">
             <Button
               variant="link"
@@ -196,5 +193,14 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// Composant principal avec Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Chargement...</div>}>
+      <LoginFormContent />
+    </Suspense>
   );
 }

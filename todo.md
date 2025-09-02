@@ -1,4 +1,59 @@
+````markdown
 # TODO (à remplir avant chaque tâche)
+
+## ✅ Étape 6 — Impression d'étiquettes de commandes avec PDF (RÉALISÉ)
+
+**Objectif** : Créer un système d'impression d'étiquettes pour les commandes
+avec génération PDF pour une meilleure compatibilité.
+
+**Actions réalisées** :
+
+- ✅ **Migration vers jsPDF** :
+
+  - Remplacement de l'impression HTML par génération PDF
+  - Bibliothèque `jsPDF` installée pour une meilleure compatibilité
+  - Format d'étiquette 57 x 27 mm respecté avec précision
+
+- ✅ **Composant d'impression `PrintLabel` amélioré** :
+
+  - **Génération PDF native** avec dimensions exactes
+  - **Trois fonctionnalités** : Aperçu, Téléchargement, Impression
+  - **Design optimisé** : encadrement du numéro de commande, hiérarchie visuelle
+  - **Gestion du texte long** : troncature intelligente du nom client
+
+- ✅ **Interface utilisateur enrichie** :
+
+  - **Bouton "Aperçu PDF"** : Ouvre le PDF dans un nouvel onglet
+  - **Bouton "Télécharger PDF"** : Sauvegarde locale de l'étiquette
+  - **Bouton "Imprimer PDF"** : Impression directe via le navigateur
+  - **Configuration du magasin** : Toujours disponible via "Paramètres"
+
+- ✅ **Avantages de la solution PDF** :
+  - **Compatibilité universelle** : Fonctionne sur tous les navigateurs et OS
+  - **Dimensions précises** : 57 x 27 mm respectés à 100%
+  - **Qualité d'impression** : Rendu vectoriel parfait
+  - **Archivage possible** : PDF téléchargeable pour conservation
+
+**Fonctionnalités** :
+
+- Génération d'étiquettes PDF aux dimensions exactes (57 x 27 mm)
+- Trois modes d'utilisation : aperçu, téléchargement, impression
+- Design professionnel avec encadrement du numéro de commande
+- Configuration personnalisable du nom du magasin
+- Gestion intelligente des noms de clients longs
+
+**Utilisation** :
+
+1. **Configuration** (optionnel) : "Paramètres" → modifier le nom du magasin
+2. **Aperçu** : "Aperçu PDF" → visualiser l'étiquette dans un nouvel onglet
+3. **Téléchargement** : "Télécharger PDF" → sauvegarder l'étiquette localement
+4. **Impression** : "Imprimer PDF" → imprimer directement depuis le navigateur
+   - Ajouter d'autres formats d'étiquettes
+   - Permettre la personnalisation du design
+   - Ajouter un aperçu avant impression
+   - Intégrer avec une imprimante d'étiquettes spécialisée
+
+---
 
 ## ✅ Étape 5 — Implémentation complète de l'authentification sécurisée (RÉALISÉ)
 
@@ -508,3 +563,4 @@ assignation technicien.
 
 4. **Build the UI**:
    - Start with the order creation form and technician dashboard.
+````

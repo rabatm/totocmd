@@ -19,6 +19,7 @@ interface CommandeStatusSelectProps {
 
 const statusOptions = [
   { value: CommandeStatus.EN_ATTENTE, label: 'En attente' },
+  { value: CommandeStatus.EN_ATTENTE_DACOMPTE, label: "En attente d'acompte" },
   { value: CommandeStatus.EN_COURS, label: 'En cours' },
   { value: CommandeStatus.PRET_EXPEDITION, label: 'Prêt expédition' },
   { value: CommandeStatus.EXPEDIE, label: 'Expédiée' },

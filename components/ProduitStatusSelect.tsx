@@ -20,6 +20,7 @@ interface ProduitStatusSelectProps {
 
 const statusOptions = [
   { value: ProduitStatus.SCANNE, label: 'Scanné' },
+  { value: ProduitStatus.RESERVE, label: 'Réservé' },
   { value: ProduitStatus.EN_PREPARATION, label: 'En préparation' },
   { value: ProduitStatus.PRET_EXPEDITION, label: 'Prêt expédition' },
   { value: ProduitStatus.EXPEDIE, label: 'Expédié' },

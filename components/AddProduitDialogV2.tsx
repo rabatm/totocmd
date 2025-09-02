@@ -37,7 +37,7 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
     code_produit: '',
     numero_serie: '',
     quantite: 1,
-    statut: ProduitStatus.SCANNE as string,
+    statut: ProduitStatus.RESERVE as string,
     remarque: '',
   });
 
@@ -80,7 +80,7 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
         code_produit: '',
         numero_serie: '',
         quantite: 1,
-        statut: ProduitStatus.SCANNE,
+        statut: ProduitStatus.RESERVE,
         remarque: '',
       });
       setOpen(false);
@@ -127,7 +127,7 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
                     code_produit: '',
                     numero_serie: '',
                     quantite: 1,
-                    statut: ProduitStatus.SCANNE,
+                    statut: ProduitStatus.RESERVE,
                     remarque: '',
                   });
                 }}
@@ -293,7 +293,7 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={ProduitStatus.SCANNE}>Scanné</SelectItem>
+                  <SelectItem value={ProduitStatus.RESERVE}>Réservé</SelectItem>
                   <SelectItem value={ProduitStatus.EN_PREPARATION}>
                     En préparation
                   </SelectItem>
