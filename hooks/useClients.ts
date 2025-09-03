@@ -4,11 +4,22 @@ import { supabase } from '@/lib/supabaseClient';
 import { Client } from '@/src/types';
 import { useQuery } from '@tanstack/react-query';
 
-export const useClients = () => {
+export const useClients = (searchTerm?: string) => {
   return useQuery({
-    queryKey: ['clients'],
+    queryKey: ['clients', searchTerm],
     queryFn: async (): Promise<Client[]> => {
-      const { data, error } = await supabase.from('clients').select('*');
+      if (!searchTerm || searchTerm.length < 3) {
+        return []; // Retourner un tableau vide si moins de 3 caractères
+      }
+
+      let query = supabase.from('clients').select('*').limit(100); // Réduire la limite car on filtre
+
+      // Rechercher dans le nom et l'email
+      query = query.or(
+        `name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`,
+      );
+
+      const { data, error } = await query;
 
       if (error) {
         throw new Error(
@@ -18,6 +29,7 @@ export const useClients = () => {
 
       return data || [];
     },
+    enabled: !!searchTerm && searchTerm.length >= 3, // Activer seulement si 3+ caractères
   });
 };
 

@@ -14,11 +14,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useClients } from '@/hooks/useCommandes';
+import { useClient, useClients } from '@/hooks/useClients';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown, Loader2, User } from 'lucide-react';
 import { useState } from 'react';
-import AddClientDialog from './AddClientDialog';
 
 interface ClientSelectProps {
   value: string;
@@ -30,15 +29,21 @@ export default function ClientSelect({
   onValueChange,
 }: ClientSelectProps) {
   const [open, setOpen] = useState(false);
-  const { data: clients, isLoading } = useClients();
-
-  const selectedClient = clients?.find(
-    client => client.id.toString() === value,
-  );
+  const [searchTerm, setSearchTerm] = useState('');
+  const { data: clients, isLoading } = useClients(searchTerm);
+  const { data: selectedClient } = useClient(value ? parseInt(value) : 0);
 
   return (
     <div className="space-y-2">
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={open}
+        onOpenChange={isOpen => {
+          setOpen(isOpen);
+          if (!isOpen) {
+            setSearchTerm(''); // Nettoyer la recherche quand on ferme
+          }
+        }}
+      >
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -64,9 +69,22 @@ export default function ClientSelect({
         </PopoverTrigger>
         <PopoverContent className="w-[400px] p-0">
           <Command>
-            <CommandInput placeholder="Rechercher un client..." />
-            <CommandList>
-              {isLoading ? (
+            <CommandInput
+              placeholder="Tapez au moins 3 caractères pour rechercher..."
+              value={searchTerm}
+              onValueChange={setSearchTerm}
+            />
+            <CommandList className="max-h-[300px] overflow-y-auto">
+              {searchTerm.length < 3 ? (
+                <div className="flex items-center justify-center p-6">
+                  <div className="text-center">
+                    <User className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-500">
+                      Tapez au moins 3 caractères pour rechercher
+                    </p>
+                  </div>
+                </div>
+              ) : isLoading ? (
                 <div className="flex items-center justify-center p-4">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   <span className="text-sm text-gray-500">Chargement...</span>
@@ -76,18 +94,12 @@ export default function ClientSelect({
                   <CommandEmpty>
                     <div className="text-center p-4">
                       <User className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-500 mb-3">
+                      <p className="text-sm text-gray-500">
                         Aucun client trouvé
                       </p>
-                      <AddClientDialog
-                        onClientCreated={clientId => {
-                          onValueChange(clientId);
-                          setOpen(false);
-                        }}
-                      />
                     </div>
                   </CommandEmpty>
-                  <CommandGroup>
+                  <CommandGroup className="p-1">
                     {clients?.map(client => (
                       <CommandItem
                         key={client.id}
@@ -95,6 +107,7 @@ export default function ClientSelect({
                         onSelect={() => {
                           onValueChange(client.id.toString());
                           setOpen(false);
+                          setSearchTerm(''); // Nettoyer la recherche après sélection
                         }}
                         className="cursor-pointer"
                       >
@@ -129,16 +142,6 @@ export default function ClientSelect({
                       </CommandItem>
                     ))}
                   </CommandGroup>
-
-                  {/* Option pour créer un nouveau client */}
-                  <div className="border-t p-2">
-                    <AddClientDialog
-                      onClientCreated={clientId => {
-                        onValueChange(clientId);
-                        setOpen(false);
-                      }}
-                    />
-                  </div>
                 </>
               )}
             </CommandList>

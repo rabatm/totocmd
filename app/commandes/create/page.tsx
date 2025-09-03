@@ -25,7 +25,6 @@ export default function CreateCommandePage() {
     total_ttc: 0,
     total_ht: 0,
     total_tva: 0,
-    mode_reglement: '',
     remarque: '',
   });
 
@@ -65,7 +64,6 @@ export default function CreateCommandePage() {
         total_ttc: formData.total_ttc,
         total_ht: formData.total_ht || undefined,
         total_tva: formData.total_tva || undefined,
-        mode_reglement: formData.mode_reglement || undefined,
         remarque: formData.remarque || undefined,
       });
 
@@ -108,7 +106,7 @@ export default function CreateCommandePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-1 gap-4">
                 {/* Sélection client */}
                 <div className="space-y-2">
                   <Label htmlFor="client">Client *</Label>
@@ -119,36 +117,36 @@ export default function CreateCommandePage() {
                     }
                   />
                 </div>
+              </div>
 
-                {/* Numéro de commande */}
-                <div className="space-y-2">
-                  <Label htmlFor="numero_commande">Numéro de commande *</Label>
-                  <div className="flex space-x-2">
-                    <Input
-                      id="numero_commande"
-                      value={formData.numero_commande}
-                      onChange={e =>
-                        setFormData(prev => ({
-                          ...prev,
-                          numero_commande: e.target.value,
-                        }))
-                      }
-                      placeholder="CMD-2025-001"
-                      required
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() =>
-                        setFormData(prev => ({
-                          ...prev,
-                          numero_commande: generateNumeroCommande(),
-                        }))
-                      }
-                    >
-                      Auto
-                    </Button>
-                  </div>
+              {/* Numéro de commande - sur sa propre ligne */}
+              <div className="space-y-2">
+                <Label htmlFor="numero_commande">Numéro de commande *</Label>
+                <div className="flex space-x-2">
+                  <Input
+                    id="numero_commande"
+                    value={formData.numero_commande}
+                    onChange={e =>
+                      setFormData(prev => ({
+                        ...prev,
+                        numero_commande: e.target.value,
+                      }))
+                    }
+                    placeholder="CMD-2025-001"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      setFormData(prev => ({
+                        ...prev,
+                        numero_commande: generateNumeroCommande(),
+                      }))
+                    }
+                  >
+                    Auto
+                  </Button>
                 </div>
               </div>
 
@@ -187,22 +185,6 @@ export default function CreateCommandePage() {
                     }
                   />
                 </div>
-              </div>
-
-              {/* Mode de règlement */}
-              <div className="space-y-2">
-                <Label htmlFor="mode_reglement">Mode de règlement</Label>
-                <Input
-                  id="mode_reglement"
-                  value={formData.mode_reglement}
-                  onChange={e =>
-                    setFormData(prev => ({
-                      ...prev,
-                      mode_reglement: e.target.value,
-                    }))
-                  }
-                  placeholder="Virement, Chèque, Espèces..."
-                />
               </div>
             </CardContent>
           </Card>

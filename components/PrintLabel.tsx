@@ -22,6 +22,106 @@ const PrintLabel: React.FC<PrintLabelProps> = ({ commande }) => {
   const LABEL_WIDTH_MM = 57;
   const LABEL_HEIGHT_MM = 27;
 
+  const generateProductsPDF = async () => {
+    const pdf = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: [LABEL_HEIGHT_MM, LABEL_WIDTH_MM],
+    });
+
+    // Récupérer les produits de la commande
+    const produits = commande.commande_produits || [];
+
+    if (produits.length === 0) {
+      alert('Aucun produit trouvé dans cette commande.');
+      return;
+    }
+
+    let isFirstPage = true;
+    let currentY = 4;
+    const lineHeight = 2.5;
+    const maxTextWidth = LABEL_WIDTH_MM - 6; // Plus de place sans QR code sur les autres pages
+    const qrCodeSizeMM = 10;
+
+    const startNewPage = () => {
+      if (!isFirstPage) {
+        pdf.addPage([LABEL_HEIGHT_MM, LABEL_WIDTH_MM], 'landscape');
+      }
+      currentY = 4;
+
+      // QR Code seulement sur la première page
+      if (isFirstPage) {
+        QRCode.toDataURL(commande.numero_commande, {
+          width: 64,
+          margin: 1,
+          errorCorrectionLevel: 'H',
+        }).then(qrCodeDataURL => {
+          pdf.addImage(
+            qrCodeDataURL,
+            'PNG',
+            LABEL_WIDTH_MM - qrCodeSizeMM - 3,
+            (LABEL_HEIGHT_MM - qrCodeSizeMM) / 2 - 3,
+            qrCodeSizeMM,
+            qrCodeSizeMM,
+          );
+        });
+      }
+
+      // Titre "CMD" en haut de chaque page
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(7);
+      pdf.text(`CMD ${commande.numero_commande}`, 3, currentY);
+      currentY += 3;
+
+      isFirstPage = false;
+    };
+
+    startNewPage();
+
+    // Liste des produits
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(6);
+
+    produits.forEach((ligne: any) => {
+      console.log(ligne);
+      const produitNom = ligne.nom_produit || 'Produit inconnu';
+      const sn = ligne.numero_serie || 'SN non défini';
+
+      // Calculer l'espace nécessaire (2 lignes par produit)
+      const spaceNeeded = lineHeight * 2;
+
+      // Si pas assez de place, nouvelle page
+      if (currentY + spaceNeeded > LABEL_HEIGHT_MM - 2) {
+        startNewPage();
+      }
+
+      // Nom du produit (ligne 1)
+      pdf.setFont('helvetica', 'bold');
+      const produitLines = pdf.splitTextToSize(
+        produitNom,
+        isFirstPage ? LABEL_WIDTH_MM - qrCodeSizeMM - 6 : maxTextWidth,
+      );
+      pdf.text(produitLines[0], 3, currentY); // Prendre seulement la première ligne si trop long
+      currentY += lineHeight;
+
+      // SN (ligne 2)
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(sn, 3, currentY);
+      currentY += lineHeight;
+    });
+
+    // Ouvrir le PDF pour impression
+    pdf.autoPrint();
+    const pdfUrl = pdf.output('bloburl');
+    const printWindow = window.open(pdfUrl.toString(), '_blank');
+    if (!printWindow) {
+      alert(
+        "La fenêtre d'impression a été bloquée. Veuillez autoriser les pop-ups.",
+      );
+    }
+  };
+
   const generatePDF = async (action: 'print' | 'preview') => {
     const pdf = new jsPDF({
       orientation: 'landscape',
@@ -142,7 +242,17 @@ const PrintLabel: React.FC<PrintLabelProps> = ({ commande }) => {
         className="flex items-center gap-2"
       >
         <Printer className="h-4 w-4" />
-        Imprimer (PDF)
+        Imprimer Client
+      </Button>
+
+      <Button
+        onClick={generateProductsPDF}
+        variant="secondary"
+        size="sm"
+        className="flex items-center gap-2"
+      >
+        <Printer className="h-4 w-4" />
+        Imprimer Produits
       </Button>
 
       <Dialog>
