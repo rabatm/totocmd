@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { CommandeWithDetails } from '@/src/types';
+import { CommandeProduit, CommandeWithDetails } from '@/src/types';
 import { jsPDF } from 'jspdf';
 import { Printer, Zap } from 'lucide-react';
 import QRCode from 'qrcode';
@@ -83,7 +83,7 @@ const PrintLabel: React.FC<PrintLabelProps> = ({ commande }) => {
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(6);
 
-    produits.forEach((ligne: any) => {
+    produits.forEach((ligne: CommandeProduit) => {
       console.log(ligne);
       const produitNom = ligne.nom_produit || 'Produit inconnu';
       const sn = ligne.numero_serie || 'SN non défini';
@@ -128,9 +128,7 @@ const PrintLabel: React.FC<PrintLabelProps> = ({ commande }) => {
       unit: 'mm',
       format: [LABEL_HEIGHT_MM, LABEL_WIDTH_MM],
     });
-
-    const clientName =
-      commande.clients?.name || commande.clients?.[0]?.name || 'Client inconnu';
+    const clientName = commande.clients?.name || 'Client inconnu';
     // --- QR Code ---
     const qrCodeSizeMM = 10;
     const qrCodeDataURL = await QRCode.toDataURL(commande.numero_commande, {
@@ -201,8 +199,7 @@ const PrintLabel: React.FC<PrintLabelProps> = ({ commande }) => {
   };
 
   const generateZPL = () => {
-    const clientName =
-      commande.client?.name || commande.clients?.[0]?.name || 'Client inconnu';
+    const clientName = commande.clients?.name || 'Client inconnu';
 
     const zplCode = `
 ^XA

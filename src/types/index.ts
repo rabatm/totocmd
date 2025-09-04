@@ -74,7 +74,7 @@ export interface CommandeProduit {
 // Types pour les vues jointes (avec relations)
 export interface CommandeWithDetails extends Commande {
   client?: Client;
-  clients?: Client[]; // Supabase peut retourner un array
+  clients?: Client; // Supabase peut retourner un array
   personnel?: Personnel;
   commande_produits?: CommandeProduit[];
 }
