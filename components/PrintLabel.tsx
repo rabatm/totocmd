@@ -21,7 +21,17 @@ interface PrintLabelProps {
 const PrintLabel: React.FC<PrintLabelProps> = ({ commande }) => {
   const LABEL_WIDTH_MM = 57;
   const LABEL_HEIGHT_MM = 27;
-
+  function forceSplitLines(lines: string[], maxLen: number): string[] {
+    const result: string[] = [];
+    lines.forEach(line => {
+      while (line.length > maxLen) {
+        result.push(line.slice(0, maxLen));
+        line = line.slice(maxLen);
+      }
+      result.push(line);
+    });
+    return result;
+  }
   const generateProductsPDF = async () => {
     const pdf = new jsPDF({
       orientation: 'landscape',
@@ -97,15 +107,17 @@ const PrintLabel: React.FC<PrintLabelProps> = ({ commande }) => {
       }
 
       // Nom du produit (ligne 1)
-      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(5);
+      pdf.setFont('helvetica', 'italic');
       const produitLines = pdf.splitTextToSize(
         produitNom,
         isFirstPage ? LABEL_WIDTH_MM - qrCodeSizeMM - 6 : maxTextWidth,
       );
       pdf.text(produitLines[0], 3, currentY); // Prendre seulement la première ligne si trop long
-      currentY += lineHeight;
+      currentY += lineHeight + 1;
 
       // SN (ligne 2)
+      pdf.setFontSize(12);
       pdf.setFont('helvetica', 'normal');
       pdf.text(sn, 3, currentY);
       currentY += lineHeight;
@@ -133,15 +145,15 @@ const PrintLabel: React.FC<PrintLabelProps> = ({ commande }) => {
     const qrCodeSizeMM = 10;
     const qrCodeDataURL = await QRCode.toDataURL(commande.numero_commande, {
       width: 64, // pixels
-      margin: 1,
+      margin: 0,
       errorCorrectionLevel: 'H',
     });
 
     pdf.addImage(
       qrCodeDataURL,
       'PNG',
-      LABEL_WIDTH_MM - qrCodeSizeMM - 3, // x position
-      (LABEL_HEIGHT_MM - qrCodeSizeMM) / 2 - 3, // y position
+      LABEL_WIDTH_MM - qrCodeSizeMM , // x position
+      (LABEL_HEIGHT_MM - qrCodeSizeMM) - 5, // y position
       qrCodeSizeMM, // width
       qrCodeSizeMM, // height
     );
@@ -150,29 +162,31 @@ const PrintLabel: React.FC<PrintLabelProps> = ({ commande }) => {
     pdf.setTextColor(0, 0, 0);
 
     // Client name (en haut, en gras) - gestion multi-lignes
-    pdf.setFont('helvetica', 'bold');
+    pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(8);
 
     // Largeur maximale disponible pour le texte (en laissant de la place pour le QR code)
-    const maxTextWidth = LABEL_WIDTH_MM - qrCodeSizeMM - 6;
+    const maxTextWidth = LABEL_WIDTH_MM - qrCodeSizeMM - 10;
 
     // Découper le nom du client en plusieurs lignes si nécessaire
-    const clientLines = pdf.splitTextToSize(
-      clientName.toUpperCase(),
+    const rawLines = pdf.splitTextToSize(
+      (commande.clients?.name || 'Client inconnu').split(' - ').pop() || 'Client inconnu',
       maxTextWidth,
     );
+    // Découpe les mots trop longs (ex: max 20 caractères par ligne)
+    const clientLines = forceSplitLines(rawLines, 20);
 
     // Limiter à 3 lignes maximum
-    const maxLines = 3;
+    const maxLines = 5;
     const displayLines = clientLines.slice(0, maxLines);
-
+    pdf.setFontSize(14);
     // Afficher chaque ligne
     displayLines.forEach((line: string, index: number) => {
-      pdf.text(line, 3, 7 + index * 3); // Espacement de 3mm entre les lignes (descendu de 1mm)
+      pdf.text(line, 0, 7 + index * 5); // Espacement de 3mm entre les lignes (descendu de 1mm)
     });
 
     // Command number (positionné après les lignes du client)
-    const commandY = 7 + displayLines.length * 3 + 2; // 2mm d'espacement supplémentaire (descendu de 1mm)
+    const commandY = 7 + displayLines.length * 4 + 2; // 2mm d'espacement supplémentaire (descendu de 1mm)
     pdf.setFontSize(7);
     pdf.setFont('helvetica', 'normal');
     const cmdText = `CMD ${commande.numero_commande.toUpperCase()}`;
