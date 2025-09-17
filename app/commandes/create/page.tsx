@@ -1,6 +1,8 @@
 'use client';
 
 import ClientSelect from '@/components/ClientSelect';
+import ImportSourceSelector from '@/components/ImportSourceSelector';
+import ExtrabatCommandeList from '@/components/ExtrabatCommandeList';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,13 +12,45 @@ import { useCreateCommande } from '@/hooks/useCommandeMutations';
 import { ArrowLeft, Loader2, Plus, Save } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+// Types pour améliorer le typage strict
+interface Client {
+  id: number;
+  name: string;
+  extrabat_id?: string;
+  // Ajouter d'autres propriétés selon le modèle Client
+}
+
+interface FormData {
+  client_id: string;
+  numero_commande: string;
+  date_commande: string;
+  date_limite_expedition: string;
+  acompte_verse: number;
+  total_ttc: number;
+  total_ht: number;
+  total_tva: number;
+  remarque: string;
+}
+
+interface ManualOrderFormProps {
+  formData: FormData;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  createCommande: ReturnType<typeof useCreateCommande>;
+  generateNumeroCommande: () => string;
+}
 
 export default function CreateCommandePage() {
   const router = useRouter();
   const createCommande = useCreateCommande();
 
-  const [formData, setFormData] = useState({
+  // État pour le mode de création
+  const [importSource, setImportSource] = useState<'manual' | 'extrabat'>('manual');
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+
+  const [formData, setFormData] = useState<FormData>({
     client_id: '',
     numero_commande: '',
     date_commande: new Date().toISOString().split('T')[0],
@@ -28,8 +62,34 @@ export default function CreateCommandePage() {
     remarque: '',
   });
 
+  // Récupérer les détails du client sélectionné
+  useEffect(() => {
+    const fetchClientDetails = async () => {
+      if (formData.client_id) {
+        try {
+          // Récupérer le client depuis Supabase
+          const response = await fetch(`/api/clients/${formData.client_id}`);
+          if (response.ok) {
+            const client = await response.json();
+            setSelectedClient(client);
+          } else {
+            console.error('Erreur API clients:', response.status);
+            setSelectedClient(null);
+          }
+        } catch (error) {
+          console.error('Erreur récupération client:', error);
+          setSelectedClient(null);
+        }
+      } else {
+        setSelectedClient(null);
+      }
+    };
+
+    fetchClientDetails();
+  }, [formData.client_id]);
+
   // Génération automatique du numéro de commande
-  const generateNumeroCommande = () => {
+  const generateNumeroCommande = (): string => {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -37,9 +97,7 @@ export default function CreateCommandePage() {
     return `CMD-${year}-${month}-${timestamp}`;
   };
 
-  // ...existing code...
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
     if (!formData.client_id) {
@@ -51,8 +109,6 @@ export default function CreateCommandePage() {
       alert('Veuillez saisir un numéro de commande');
       return;
     }
-
-    // ...existing code...
 
     try {
       const newCommande = await createCommande.mutateAsync({
@@ -67,7 +123,6 @@ export default function CreateCommandePage() {
         remarque: formData.remarque || undefined,
       });
 
-      // Rediriger vers la page de détail de la nouvelle commande
       router.push(`/commandes/${newCommande.id}`);
     } catch (error) {
       console.error('Erreur lors de la création:', error);
@@ -90,147 +145,196 @@ export default function CreateCommandePage() {
             <h1 className="text-3xl font-bold text-gray-900">
               Nouvelle commande
             </h1>
-            <p className="text-gray-600">Créer une nouvelle commande client</p>
+            <p className="text-gray-600">
+              {importSource === 'manual'
+                ? 'Créer une nouvelle commande client'
+                : 'Importer une commande depuis ExtraBat'}
+            </p>
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="grid gap-6">
-          {/* Informations générales */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Plus className="h-5 w-5 mr-2" />
-                Informations générales
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-1 gap-4">
-                {/* Sélection client */}
-                <div className="space-y-2">
-                  <Label htmlFor="client">Client *</Label>
-                  <ClientSelect
-                    value={formData.client_id}
-                    onValueChange={value =>
-                      setFormData(prev => ({ ...prev, client_id: value }))
-                    }
-                  />
-                </div>
-              </div>
+      <div className="space-y-6">
+        {/* Sélection du mode de création */}
+        <ImportSourceSelector
+          value={importSource}
+          onValueChange={setImportSource}
+        />
 
-              {/* Numéro de commande - sur sa propre ligne */}
-              <div className="space-y-2">
-                <Label htmlFor="numero_commande">Numéro de commande *</Label>
-                <div className="flex space-x-2">
-                  <Input
-                    id="numero_commande"
-                    value={formData.numero_commande}
-                    onChange={e =>
-                      setFormData(prev => ({
-                        ...prev,
-                        numero_commande: e.target.value,
-                      }))
-                    }
-                    placeholder="CMD-2025-001"
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      setFormData(prev => ({
-                        ...prev,
-                        numero_commande: generateNumeroCommande(),
-                      }))
-                    }
-                  >
-                    Auto
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                {/* Date de commande */}
-                <div className="space-y-2">
-                  <Label htmlFor="date_commande">Date de commande *</Label>
-                  <Input
-                    id="date_commande"
-                    type="date"
-                    value={formData.date_commande}
-                    onChange={e =>
-                      setFormData(prev => ({
-                        ...prev,
-                        date_commande: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
-
-                {/* Date limite expédition */}
-                <div className="space-y-2">
-                  <Label htmlFor="date_limite_expedition">
-                    Date limite expédition
-                  </Label>
-                  <Input
-                    id="date_limite_expedition"
-                    type="date"
-                    value={formData.date_limite_expedition}
-                    onChange={e =>
-                      setFormData(prev => ({
-                        ...prev,
-                        date_limite_expedition: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Remarques */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Remarques</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                value={formData.remarque}
-                onChange={e =>
-                  setFormData(prev => ({ ...prev, remarque: e.target.value }))
+        {/* Sélection du client (toujours nécessaire) */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Sélection du client</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="client">Client *</Label>
+              <ClientSelect
+                value={formData.client_id}
+                onValueChange={value =>
+                  setFormData(prev => ({ ...prev, client_id: value }))
                 }
-                placeholder="Remarques ou instructions particulières..."
-                rows={4}
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Affichage conditionnel selon le mode */}
+        {importSource === 'extrabat' && selectedClient?.extrabat_id ? (
+          <ExtrabatCommandeList
+            clientId={formData.client_id}
+            clientExtrabatId={selectedClient.extrabat_id}
+          />
+        ) : importSource === 'extrabat' && formData.client_id ? (
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center text-orange-600">
+                <p>Ce client n&apos;a pas d&apos;ID ExtraBat configuré.</p>
+                <p className="text-sm mt-1">
+                  Veuillez sélectionner un autre client ou utiliser la création manuelle.
+                </p>
+              </div>
             </CardContent>
           </Card>
-
-          {/* Boutons d'action */}
-          <div className="flex justify-end space-x-4">
-            <Link href="/commandes">
-              <Button variant="outline">Annuler</Button>
-            </Link>
-            <Button
-              type="submit"
-              disabled={createCommande.isPending}
-              className="min-w-32"
-            >
-              {createCommande.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Création...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Créer la commande
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </form>
+        ) : importSource === 'manual' && formData.client_id ? (
+          <ManualOrderForm
+            formData={formData}
+            setFormData={setFormData}
+            handleSubmit={handleSubmit}
+            createCommande={createCommande}
+            generateNumeroCommande={generateNumeroCommande}
+          />
+        ) : null}
+      </div>
     </div>
+  );
+}
+
+// Composant pour le formulaire manuel
+function ManualOrderForm({ formData, setFormData, handleSubmit, createCommande, generateNumeroCommande }: ManualOrderFormProps) {
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="grid gap-6">
+        {/* Informations générales */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Plus className="h-5 w-5 mr-2" />
+              Informations générales
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Numéro de commande */}
+            <div className="space-y-2">
+              <Label htmlFor="numero_commande">Numéro de commande *</Label>
+              <div className="flex space-x-2">
+                <Input
+                  id="numero_commande"
+                  value={formData.numero_commande}
+                  onChange={e =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      numero_commande: e.target.value,
+                    }))
+                  }
+                  placeholder="CMD-2025-001"
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      numero_commande: generateNumeroCommande(),
+                    }))
+                  }
+                >
+                  Auto
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Date de commande */}
+              <div className="space-y-2">
+                <Label htmlFor="date_commande">Date de commande *</Label>
+                <Input
+                  id="date_commande"
+                  type="date"
+                  value={formData.date_commande}
+                  onChange={e =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      date_commande: e.target.value,
+                    }))
+                  }
+                  required
+                />
+              </div>
+
+              {/* Date limite expédition */}
+              <div className="space-y-2">
+                <Label htmlFor="date_limite_expedition">
+                  Date limite expédition
+                </Label>
+                <Input
+                  id="date_limite_expedition"
+                  type="date"
+                  value={formData.date_limite_expedition}
+                  onChange={e =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      date_limite_expedition: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Remarques */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Remarques</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              value={formData.remarque}
+              onChange={e =>
+                setFormData((prev) => ({ ...prev, remarque: e.target.value }))
+              }
+              placeholder="Remarques ou instructions particulières..."
+              rows={4}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Boutons d'action */}
+        <div className="flex justify-end space-x-4">
+          <Link href="/commandes">
+            <Button variant="outline">Annuler</Button>
+          </Link>
+          <Button
+            type="submit"
+            disabled={createCommande.isPending}
+            className="min-w-32"
+          >
+            {createCommande.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Création...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Créer la commande
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </form>
   );
 }

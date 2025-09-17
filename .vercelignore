@@ -1,0 +1,29 @@
+# Ignorer le dossier Flutter entier
+toto_cmd_mobil/
+
+# Ignorer les dossiers de build et cache
+node_modules/
+.next/
+build/
+dist/
+out/
+coverage/
+
+# Ignorer les logs et fichiers temporaires
+*.log
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignorer les fichiers de développement
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignorer les backups et fichiers de sauvegarde
+*.bak
+*.tmp
+*.temp

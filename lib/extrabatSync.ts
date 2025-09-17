@@ -1,5 +1,42 @@
 import { supabase } from '@/lib/supabaseClient';
-import { ExtrabatProduit, Produit } from '@/src/types';
+import { ExtrabatProduit, Produit, Commande } from '@/src/types';
+
+// Types pour les commandes ExtraBat
+interface ExtrabatCommande {
+  id: string;
+  code: string; // Le numéro de commande est dans "code", pas "numero"
+  date: string;
+  titre: string; // Le libellé est dans "titre", pas "libelle"
+  totalHT: number; // Les montants ont des noms différents
+  totalTTC: number;
+  type: number;
+  etatLettrage?: number;
+  transformationState?: number;
+  client?: {
+    id: string;
+    nom: string;
+    email?: string;
+  };
+  lignes?: ExtrabatLigneCommande[];
+}
+
+interface ExtrabatLigneCommande {
+  id: number;
+  code: string;
+  description: string;
+  quantite: string | null;
+  puht: string;
+  totalHt: string;
+  article: {
+    id: number;
+    code: string;
+    libelle: string;
+    description?: string;
+    prix: number;
+  } | null;
+}
+
+// Types supprimés car l'API ExtraBat retourne directement les données
 
 // Configuration de l'API Extrabat
 const EXTRABAT_API_URL = 'https://api.extrabat.com/v1';
@@ -299,6 +336,242 @@ export class ExtrabatSyncService {
     }
 
     return data || [];
+  }
+
+  // Méthodes pour les commandes ExtraBat
+  async fetchCommandesByClient(clientExtrabatId: string): Promise<ExtrabatCommande[]> {
+    if (!this.apiKey) {
+      throw new Error('Clé API Extrabat manquante');
+    }
+
+    try {
+      const response = await fetch(
+        `${EXTRABAT_API_URL}/pieces?types=commande&clients=${clientExtrabatId}&include=client&order=piece.date:desc&nbitem=50`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Erreur API Extrabat: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const data = await response.json();
+      // L'API ExtraBat retourne directement un tableau de commandes
+      return Array.isArray(data) ? data : data.pieces || [];
+    } catch (error) {
+      console.error(
+        'Erreur lors de la récupération des commandes Extrabat:',
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async fetchCommandeDetails(pieceId: string): Promise<ExtrabatCommande> {
+    if (!this.apiKey) {
+      throw new Error('Clé API Extrabat manquante');
+    }
+
+    try {
+      const response = await fetch(
+        `${EXTRABAT_API_URL}/piece/${pieceId}?include=client,lignes,ligne.article`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Erreur API Extrabat: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const data = await response.json();
+      // L'API ExtraBat retourne directement la commande, pas dans un objet "piece"
+      return data;
+    } catch (error) {
+      console.error(
+        'Erreur lors de la récupération des détails de commande Extrabat:',
+        error,
+      );
+      throw error;
+    }
+  }
+
+  // Transformer une commande Extrabat vers le format Supabase
+transformExtrabatCommande(
+  extrabatCommande: ExtrabatCommande,
+  localClientId: string,
+): Omit<Commande, 'created_at' | 'updated_at'> {
+    return {
+      id: crypto.randomUUID(), // Génère un nouvel ID local
+      client_id: parseInt(localClientId),
+      numero_commande: extrabatCommande.code,
+      date_commande: extrabatCommande.date,
+      acompte_verse: 0, // Pas d'acompte versé par défaut
+      total_ht: extrabatCommande.totalHT,
+      total_ttc: extrabatCommande.totalTTC,
+      total_tva: extrabatCommande.totalTTC - extrabatCommande.totalHT,
+      etat: 'en_attente',
+      progression: 0,
+      remarque: extrabatCommande.titre,
+      extrabat_id: extrabatCommande.id,
+    };
+  }
+
+  // Créer ou récupérer un produit depuis un article ExtraBat
+  async ensureProduitExists(articleExtrabat: ExtrabatLigneCommande['article']): Promise<string> {
+    if (!articleExtrabat) {
+      throw new Error('Article ExtraBat manquant');
+    }
+
+    // Vérifier si le produit existe déjà (par code)
+    const { data: existingProduit } = await supabase
+      .from('produits')
+      .select('id')
+      .eq('code', articleExtrabat.code)
+      .single();
+
+    if (existingProduit) {
+      return existingProduit.id;
+    }
+
+    // Créer le produit s'il n'existe pas
+    const produitData = {
+      id: crypto.randomUUID(), // Génère un ID UUID local
+      code: articleExtrabat.code,
+      libelle: articleExtrabat.libelle,
+      description: articleExtrabat.description || null,
+      prix: articleExtrabat.prix,
+      tenue_stock: false,
+      taux_tva: 20, // TVA par défaut
+      extrabat_id: articleExtrabat.id.toString(), // Garder l'ID ExtraBat pour référence
+      last_sync: new Date().toISOString(),
+    };
+
+    const { data: newProduit, error } = await supabase
+      .from('produits')
+      .insert(produitData)
+      .select('id')
+      .single();
+
+    if (error) {
+      console.error('Erreur création produit:', error);
+      throw new Error(`Erreur lors de la création du produit ${articleExtrabat.code}: ${error.message}`);
+    }
+
+    return newProduit.id;
+  }
+
+  // Importer une commande complète depuis ExtraBat
+  async importCommandeFromExtrabat(
+    pieceId: string,
+    localClientId: string,
+  ): Promise<{ success: boolean; commandeId?: string; error?: string }> {
+    try {
+      // 1. Vérifier si la commande n'est pas déjà importée
+      const { data: existingCommande } = await supabase
+        .from('commandes')
+        .select('id')
+        .eq('extrabat_id', pieceId)
+        .single();
+
+      if (existingCommande) {
+        return {
+          success: false,
+          error: 'Cette commande a déjà été importée',
+        };
+      }
+
+      // 2. Récupérer les détails de la commande ExtraBat
+      const extrabatCommande = await this.fetchCommandeDetails(pieceId);
+
+      // 3. Transformer et créer la commande locale
+      const commandeData = this.transformExtrabatCommande(
+        extrabatCommande,
+        localClientId,
+      );
+
+      const { data: newCommande, error: commandeError } = await supabase
+        .from('commandes')
+        .insert(commandeData)
+        .select('id')
+        .single();
+
+      if (commandeError) {
+        console.error('Erreur création commande:', commandeError);
+        throw new Error(`Erreur création commande: ${commandeError.message || commandeError.details || commandeError.hint || JSON.stringify(commandeError)}`);
+      }
+
+      if (!newCommande || !newCommande.id) {
+        throw new Error('Erreur: commande créée mais ID manquant');
+      }
+
+      // 4. Importer les lignes de commande
+      if (extrabatCommande.lignes && extrabatCommande.lignes.length > 0) {
+        for (const ligne of extrabatCommande.lignes) {
+          // Ignorer les lignes sans article ou sans quantité (comme les descriptions)
+          if (!ligne.article || !ligne.quantite || ligne.quantite === null) {
+            continue;
+          }
+
+          try {
+            // Créer ou récupérer le produit
+            const produitId = await this.ensureProduitExists(ligne.article);
+
+            // Créer la ligne de commande
+            const ligneData = {
+              id: crypto.randomUUID(),
+              commande_id: newCommande.id,
+              personnel_id: parseInt(localClientId), // Utiliser l'ID client temporairement, à améliorer plus tard
+              nom_produit: ligne.article.libelle,
+              code_produit: ligne.article.code,
+              quantite: parseFloat(ligne.quantite),
+              statut: 'scanne',
+              date_scan: new Date().toISOString(),
+            };
+
+            const { error: ligneError } = await supabase
+              .from('commande_produits')
+              .insert(ligneData);
+
+            if (ligneError) {
+              console.error(
+                `Erreur création ligne commande ${ligne.id}:`,
+                ligneError.message || ligneError.details || ligneError.hint,
+              );
+              // Continue avec les autres lignes même si une échoue
+            }
+          } catch (error) {
+            console.error(
+              `Erreur traitement ligne ${ligne.id}:`,
+              error,
+            );
+            // Continue avec les autres lignes
+          }
+        }
+      }
+
+      return {
+        success: true,
+        commandeId: newCommande.id,
+      };
+    } catch (error) {
+      console.error('Erreur import commande ExtraBat:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Erreur inconnue',
+      };
+    }
   }
 }
 

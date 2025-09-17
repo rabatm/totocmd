@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient';
-import { NextRequest, NextResponse } from 'next/server';
+import {  NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     console.log("🔐 Création d'un utilisateur de test...");
 
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 
     // Vérifier la connexion Supabase
     console.log('📡 Test de connexion Supabase...');
-    const { data: sessionData, error: sessionError } =
+    const { error: sessionError } =
       await supabase.auth.getSession();
 
     if (sessionError) {

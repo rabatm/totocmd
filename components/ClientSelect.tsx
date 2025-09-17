@@ -122,7 +122,7 @@ export default function ClientSelect({
                         <div className="flex flex-col flex-1">
                           <div className="flex items-center space-x-2">
                             <User className="h-4 w-4 text-gray-500" />
-                            <span className="font-medium">{client.name}</span>
+                            <span className="font-medium">{client.name} {client.extrabat_id} - ik</span>
                           </div>
                           {(client.email || client.phone) && (
                             <div className="text-xs text-gray-500 ml-6">
