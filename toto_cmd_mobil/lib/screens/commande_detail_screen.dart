@@ -4,6 +4,7 @@ import '../models/models.dart';
 import '../services/commande_service.dart';
 import '../widgets/produit_search_dialog.dart';
 import '../widgets/produit_edit_dialog.dart';
+import '../widgets/sn_edit_dialog.dart';
 
 class CommandeDetailScreen extends StatefulWidget {
   final String commandeId;
@@ -176,6 +177,48 @@ class _CommandeDetailScreenState extends State<CommandeDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de la modification: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showSnEditDialog(CommandeProduit produit) async {
+    await showDialog(
+      context: context,
+      builder: (context) => SnEditDialog(
+        currentSn: produit.numeroSerie,
+        onSave: (sn) async {
+          await _updateProduitSn(produit.id, sn);
+        },
+      ),
+    );
+  }
+
+  Future<void> _updateProduitSn(String produitId, String sn) async {
+    try {
+      await CommandeService.updateProduitCommande(
+        widget.commandeId,
+        produitId,
+        numeroSerie: sn,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Numéro de série mis à jour avec succès'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
+      await _reloadProduits();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la mise à jour: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -489,6 +532,9 @@ class _CommandeDetailScreenState extends State<CommandeDetailScreen> {
                                         trailing: PopupMenuButton<String>(
                                           onSelected: (value) {
                                             switch (value) {
+                                              case 'edit_sn':
+                                                _showSnEditDialog(produit);
+                                                break;
                                               case 'edit':
                                                 _showEditProduitDialog(produit);
                                                 break;
@@ -498,6 +544,16 @@ class _CommandeDetailScreenState extends State<CommandeDetailScreen> {
                                             }
                                           },
                                           itemBuilder: (context) => [
+                                            const PopupMenuItem(
+                                              value: 'edit_sn',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.qr_code, size: 18, color: Colors.blue),
+                                                  SizedBox(width: 8),
+                                                  Text('Modifier SN'),
+                                                ],
+                                              ),
+                                            ),
                                             const PopupMenuItem(
                                               value: 'edit',
                                               child: Row(
@@ -527,6 +583,7 @@ class _CommandeDetailScreenState extends State<CommandeDetailScreen> {
                                             ),
                                           ],
                                         ),
+                                        onTap: () => _showSnEditDialog(produit),
                                       ),
                                     );
                                   },

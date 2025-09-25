@@ -434,16 +434,26 @@ transformExtrabatCommande(
       throw new Error('Article ExtraBat manquant');
     }
 
+    console.log(`🔍 Recherche produit existant: ${articleExtrabat.code}`);
+
     // Vérifier si le produit existe déjà (par code)
-    const { data: existingProduit } = await supabase
+    const { data: existingProduit, error: searchError } = await supabase
       .from('produits')
       .select('id')
       .eq('code', articleExtrabat.code)
       .single();
 
+    if (searchError && searchError.code !== 'PGRST116') {
+      console.error('Erreur recherche produit:', searchError);
+      throw new Error(`Erreur recherche produit: ${searchError.message}`);
+    }
+
     if (existingProduit) {
+      console.log(`✅ Produit existant trouvé: ${existingProduit.id}`);
       return existingProduit.id;
     }
+
+    console.log(`🆕 Création nouveau produit: ${articleExtrabat.code}`);
 
     // Créer le produit s'il n'existe pas
     const produitData = {
@@ -458,6 +468,8 @@ transformExtrabatCommande(
       last_sync: new Date().toISOString(),
     };
 
+    console.log(`📝 Données produit à créer:`, JSON.stringify(produitData, null, 2));
+
     const { data: newProduit, error } = await supabase
       .from('produits')
       .insert(produitData)
@@ -465,10 +477,20 @@ transformExtrabatCommande(
       .single();
 
     if (error) {
-      console.error('Erreur création produit:', error);
+      console.error('❌ Erreur création produit:', {
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        message: error.message
+      });
       throw new Error(`Erreur lors de la création du produit ${articleExtrabat.code}: ${error.message}`);
     }
 
+    if (!newProduit || !newProduit.id) {
+      throw new Error('Produit créé mais ID manquant');
+    }
+
+    console.log(`✅ Nouveau produit créé: ${newProduit.id}`);
     return newProduit.id;
   }
 
@@ -517,22 +539,40 @@ transformExtrabatCommande(
       }
 
       // 4. Importer les lignes de commande
+      console.log(`🔄 Import de ${extrabatCommande.lignes?.length || 0} lignes de commande...`);
+
       if (extrabatCommande.lignes && extrabatCommande.lignes.length > 0) {
+        let lignesImportees = 0;
+        let lignesEchouees = 0;
+
         for (const ligne of extrabatCommande.lignes) {
           // Ignorer les lignes sans article ou sans quantité (comme les descriptions)
           if (!ligne.article || !ligne.quantite || ligne.quantite === null) {
+            console.log(`⏭️ Ligne ${ligne.id} ignorée (pas d'article ou quantité nulle)`);
             continue;
           }
 
           try {
+            console.log(`📦 Import ligne ${ligne.id}: ${ligne.article.libelle} (${ligne.quantite})`);
+
             // Créer ou récupérer le produit
             const produitId = await this.ensureProduitExists(ligne.article);
+            console.log(`✅ Produit créé/trouvé: ${produitId}`);
+
+            // Récupérer un personnel_id valide (prendre le premier disponible)
+            const { data: personnel } = await supabase
+              .from('personnel')
+              .select('id')
+              .limit(1)
+              .single();
+
+            const personnelId = personnel?.id || 1; // Fallback sur 1 si pas de personnel trouvé
 
             // Créer la ligne de commande
             const ligneData = {
               id: crypto.randomUUID(),
               commande_id: newCommande.id,
-              personnel_id: parseInt(localClientId), // Utiliser l'ID client temporairement, à améliorer plus tard
+              personnel_id: personnelId, // ✅ Utilisation d'un vrai personnel_id
               nom_produit: ligne.article.libelle,
               code_produit: ligne.article.code,
               quantite: parseFloat(ligne.quantite),
@@ -540,25 +580,39 @@ transformExtrabatCommande(
               date_scan: new Date().toISOString(),
             };
 
-            const { error: ligneError } = await supabase
+            console.log(`📝 Données ligne à insérer:`, JSON.stringify(ligneData, null, 2));
+
+            const { data: insertedLigne, error: ligneError } = await supabase
               .from('commande_produits')
-              .insert(ligneData);
+              .insert(ligneData)
+              .select('id')
+              .single();
 
             if (ligneError) {
-              console.error(
-                `Erreur création ligne commande ${ligne.id}:`,
-                ligneError.message || ligneError.details || ligneError.hint,
-              );
-              // Continue avec les autres lignes même si une échoue
+              console.error(`❌ Erreur création ligne commande ${ligne.id}:`, {
+                code: ligneError.code,
+                details: ligneError.details,
+                hint: ligneError.hint,
+                message: ligneError.message
+              });
+              lignesEchouees++;
+            } else {
+              console.log(`✅ Ligne ${ligne.id} importée avec succès (ID: ${insertedLigne?.id})`);
+              lignesImportees++;
             }
           } catch (error) {
-            console.error(
-              `Erreur traitement ligne ${ligne.id}:`,
-              error,
-            );
-            // Continue avec les autres lignes
+            console.error(`❌ Erreur traitement ligne ${ligne.id}:`, error);
+            lignesEchouees++;
           }
         }
+
+        console.log(`📊 Résumé import: ${lignesImportees} lignes réussies, ${lignesEchouees} échouées`);
+
+        if (lignesEchouees > 0) {
+          console.warn(`⚠️ ${lignesEchouees} lignes ont échoué lors de l'import`);
+        }
+      } else {
+        console.log(`ℹ️ Aucune ligne de commande à importer`);
       }
 
       return {

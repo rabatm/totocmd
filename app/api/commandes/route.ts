@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
           phone
         )
       `)
+      .not('etat', 'in', '(expedie,annule)') // ✅ Exclure les commandes expédiées et annulées
       .order('created_at', { ascending: false });
 
     if (search) {

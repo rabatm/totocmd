@@ -75,13 +75,13 @@ class _CommandesListScreenState extends State<CommandesListScreen> {
     switch (etat) {
       case 'en_attente':
         return 'En attente';
-      case 'en_preparation':
-        return 'En préparation';
-      case 'prete':
-        return 'Prête';
+      case 'en_cours':
+        return 'En cours';
+      case 'pret_expedition':
+        return 'Prêt expédition';
       case 'expedie':
         return 'Expédiée';
-      case 'annulee':
+      case 'annule':
         return 'Annulée';
       default:
         return etat;
@@ -92,13 +92,13 @@ class _CommandesListScreenState extends State<CommandesListScreen> {
     switch (etat) {
       case 'en_attente':
         return Colors.orange;
-      case 'en_preparation':
+      case 'en_cours':
         return Colors.blue;
-      case 'prete':
+      case 'pret_expedition':
         return Colors.green;
       case 'expedie':
         return Colors.grey;
-      case 'annulee':
+      case 'annule':
         return Colors.red;
       default:
         return Colors.grey;
@@ -120,6 +120,26 @@ class _CommandesListScreenState extends State<CommandesListScreen> {
       ),
       body: Column(
         children: [
+          // Indicateur de filtrage
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: Colors.blue.shade50,
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, size: 16, color: Colors.blue.shade700),
+                const SizedBox(width: 8),
+                Text(
+                  'Affichage des commandes actives uniquement',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.blue.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
           // Barre de recherche
           Padding(
             padding: const EdgeInsets.all(16.0),
