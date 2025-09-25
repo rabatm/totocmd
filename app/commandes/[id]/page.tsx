@@ -99,8 +99,6 @@ export default function CommandeDetailPage({
     ? selectedProducts.length === commande.commande_produits.length && commande.commande_produits.length > 0
     : false;
 
-  const isPartiallySelected = selectedProducts.length > 0 && !isAllSelected;
-
   if (isLoading) {
     return (
       <div className="container mx-auto p-6">
@@ -338,6 +336,16 @@ export default function CommandeDetailPage({
                   <div className="mt-1">{commande.mode_reglement}</div>
                 </div>
               )}
+              {commande?.cmd_av && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Antivirus à installer
+                  </label>
+                  <div className="mt-1 p-3 bg-blue-50 rounded-md text-blue-900 font-medium">
+                    🛡️ {commande.cmd_av}
+                  </div>
+                </div>
+              )}
               {commande?.remarque && (
                 <div>
                   <label className="text-sm font-medium text-gray-500">
@@ -414,11 +422,6 @@ export default function CommandeDetailPage({
                           checked={isAllSelected}
                           onCheckedChange={handleSelectAll}
                           aria-label="Sélectionner tous les produits"
-                          ref={(ref) => {
-                            if (ref) {
-                              ref.indeterminate = isPartiallySelected;
-                            }
-                          }}
                         />
                       </TableHead>
                       <TableHead>Produit</TableHead>

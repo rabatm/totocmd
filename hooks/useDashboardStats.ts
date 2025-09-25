@@ -129,7 +129,7 @@ export const useDashboardStats = () => {
         return acc;
       }, {} as Record<string, number>);
 
-      const produitsParStatut = Object.entries(statutsProduits).map(([statut, count]) => ({
+      const produitsParStatut = (Object.entries(statutsProduits) as [string, number][]).map(([statut, count]) => ({
         statut,
         count,
         percentage: Math.round((count / totalProduits) * 100),

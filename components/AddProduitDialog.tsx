@@ -250,6 +250,7 @@ function AddProduitDialog({ commandeId }: AddProduitDialogProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={ProduitStatus.SCANNE}>Scanné</SelectItem>
                 <SelectItem value={ProduitStatus.RESERVE}>Réservé</SelectItem>
                 <SelectItem value={ProduitStatus.EN_PREPARATION}>
                   En préparation

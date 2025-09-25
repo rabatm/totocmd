@@ -29,6 +29,7 @@ interface BulkStatusButtonProps {
 
 const statusLabels = {
   scanne: 'Scanné',
+  reserve: 'Réservé',
   en_preparation: 'En préparation',
   pret_expedition: 'Prêt expédition',
   expedie: 'Expédié',

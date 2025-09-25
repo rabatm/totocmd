@@ -11,11 +11,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -28,6 +26,7 @@ import {
   Settings,
   User,
   Users,
+  Warehouse,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -76,71 +75,15 @@ export default function Header() {
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <NavigationMenuTrigger>
-                  <Package className="mr-2 h-4 w-4" />
-                  Commandes
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <div className="grid gap-3 p-6 w-[400px]">
-                    <div className="row-span-3">
-                      <NavigationMenuLink asChild>
-                        <Link
-                          className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                          href="/commandes"
-                        >
-                          <Package className="h-6 w-6" />
-                          <div className="mb-2 mt-4 text-lg font-medium">
-                            Toutes les commandes
-                          </div>
-                          <p className="text-sm leading-tight text-muted-foreground">
-                            Voir et gérer toutes les commandes clients
-                          </p>
-                        </Link>
-                      </NavigationMenuLink>
-                    </div>
-                    <div className="grid gap-2">
-                      <NavigationMenuLink asChild>
-                        <Link
-                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          href="/commandes/create"
-                        >
-                          <div className="text-sm font-medium leading-none">
-                            ➕ Nouvelle commande
-                          </div>
-                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                            Créer une nouvelle commande client
-                          </p>
-                        </Link>
-                      </NavigationMenuLink>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          href="/commandes?status=en_cours"
-                        >
-                          <div className="text-sm font-medium leading-none">
-                            En cours
-                          </div>
-                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                            Commandes en cours de traitement
-                          </p>
-                        </Link>
-                      </NavigationMenuLink>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          href="/commandes?status=pret_expedition"
-                        >
-                          <div className="text-sm font-medium leading-none">
-                            Prêtes
-                          </div>
-                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                            Commandes prêtes pour expédition
-                          </p>
-                        </Link>
-                      </NavigationMenuLink>
-                    </div>
-                  </div>
-                </NavigationMenuContent>
+                <NavigationMenuLink asChild>
+                  <Link
+                    href="/commandes"
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                  >
+                    <Package className="mr-2 h-4 w-4" />
+                    Commandes
+                  </Link>
+                </NavigationMenuLink>
               </NavigationMenuItem>
 
               <NavigationMenuItem>
@@ -151,6 +94,18 @@ export default function Header() {
                   >
                     <Package className="mr-2 h-4 w-4" />
                     Produits
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link
+                    href="/stocks"
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                  >
+                    <Warehouse className="mr-2 h-4 w-4" />
+                    Stocks
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
@@ -213,6 +168,12 @@ export default function Header() {
                         <Link href="/produits" className="flex items-center">
                           <Package className="mr-2 h-4 w-4" />
                           Produits
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/stocks" className="flex items-center">
+                          <Warehouse className="mr-2 h-4 w-4" />
+                          Stocks
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>

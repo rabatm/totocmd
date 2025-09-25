@@ -34,17 +34,16 @@ import {
 } from '@/hooks/useProduits';
 import {
   useArchiveProduitsMutation,
-  useDeleteProduitMutation,
   useSyncProduitsMutation,
 } from '@/hooks/useProduitsMutations';
 import { Produit } from '@/src/types';
+import ProductDetailsDialog from '@/components/ProductDetailsDialog';
 import {
   AlertTriangle,
   Archive,
   Boxes,
   Download,
   Edit,
-  Eye,
   MoreHorizontal,
   Package,
   Plus,
@@ -77,7 +76,6 @@ export default function ProduitsPage() {
 
   // Mutations
   const syncMutation = useSyncProduitsMutation();
-  const deleteMutation = useDeleteProduitMutation();
   const archiveMutation = useArchiveProduitsMutation();
 
   const filteredProduits = produits.filter(p =>
@@ -91,16 +89,6 @@ export default function ProduitsPage() {
     } catch (error) {
       console.error('Erreur de synchronisation:', error);
       // Optionnel: afficher une notification d'erreur
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-      try {
-        await deleteMutation.mutateAsync(id);
-      } catch (error) {
-        console.error('Erreur de suppression:', error);
-      }
     }
   };
 
@@ -377,10 +365,7 @@ export default function ProduitsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Voir
-                          </DropdownMenuItem>
+                          <ProductDetailsDialog produit={produit} />
                           <DropdownMenuItem>
                             <Edit className="mr-2 h-4 w-4" />
                             Modifier

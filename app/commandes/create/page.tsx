@@ -37,6 +37,7 @@ interface FormData {
   total_ht: number;
   total_tva: number;
   remarque: string;
+  cmd_av: string;
 }
 
 interface ManualOrderFormProps {
@@ -67,6 +68,7 @@ export default function CreateCommandePage() {
     total_ht: 0,
     total_tva: 0,
     remarque: '',
+    cmd_av: '',
   });
 
   // Récupérer les détails du client sélectionné
@@ -142,6 +144,7 @@ export default function CreateCommandePage() {
         total_ht: formData.total_ht || undefined,
         total_tva: formData.total_tva || undefined,
         remarque: formData.remarque || undefined,
+        cmd_av: formData.cmd_av || undefined,
       });
 
       router.push(`/commandes/${newCommande.id}`);
@@ -353,7 +356,7 @@ function ManualOrderForm({ formData, setFormData, handleSubmit, createCommande, 
                 />
                 {formData.date_migration && (
                   <p className="text-sm text-gray-600">
-                    Date d'expédition prévisionnelle: {' '}
+                    Date d&apos;expédition prévisionnelle: {' '}
                     <span className="font-semibold">
                       {new Date(calculateDateExpeditionPrevisionnelle(formData.date_migration)).toLocaleDateString('fr-FR')}
                     </span>
@@ -365,20 +368,41 @@ function ManualOrderForm({ formData, setFormData, handleSubmit, createCommande, 
           </CardContent>
         </Card>
 
-        {/* Remarques */}
+        {/* Informations complémentaires */}
         <Card>
           <CardHeader>
-            <CardTitle>Remarques</CardTitle>
+            <CardTitle>Informations complémentaires</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Textarea
-              value={formData.remarque}
-              onChange={e =>
-                setFormData((prev) => ({ ...prev, remarque: e.target.value }))
-              }
-              placeholder="Remarques ou instructions particulières..."
-              rows={4}
-            />
+          <CardContent className="space-y-4">
+            {/* Commande antivirus */}
+            <div className="space-y-2">
+              <Label htmlFor="cmd_av">Commande antivirus (optionnel)</Label>
+              <Input
+                id="cmd_av"
+                value={formData.cmd_av}
+                onChange={e =>
+                  setFormData((prev) => ({ ...prev, cmd_av: e.target.value }))
+                }
+                placeholder="ex: Kaspersky Internet Security, Bitdefender..."
+              />
+              <p className="text-xs text-gray-500">
+                Spécifiez l&apos;antivirus à installer sur le matériel
+              </p>
+            </div>
+
+            {/* Remarques */}
+            <div className="space-y-2">
+              <Label htmlFor="remarque">Remarques</Label>
+              <Textarea
+                id="remarque"
+                value={formData.remarque}
+                onChange={e =>
+                  setFormData((prev) => ({ ...prev, remarque: e.target.value }))
+                }
+                placeholder="Remarques ou instructions particulières..."
+                rows={4}
+              />
+            </div>
           </CardContent>
         </Card>
 

@@ -129,9 +129,9 @@ export class ExtrabatSyncService {
         ? parseFloat(extrabatProduit.prixConseille)
         : undefined,
       tenue_stock: extrabatProduit.tenueStock,
-      // stock_physique: 0, // Temporairement supprimé car colonne manquante
-      // stock_mini: undefined, // Temporairement supprimé car colonne manquante
-      // stock_maxi: undefined, // Temporairement supprimé car colonne manquante
+      stock_physique: 0,
+      stock_mini: undefined,
+      stock_maxi: undefined,
       poids: extrabatProduit.poids
         ? parseFloat(extrabatProduit.poids)
         : undefined,
@@ -149,8 +149,8 @@ export class ExtrabatSyncService {
       has_image: extrabatProduit.hasImage,
       has_image_gd: extrabatProduit.hasImageGd,
       last_sync: new Date().toISOString(),
-      // archived: false, // Temporairement supprimé car colonne manquante
-      // is_manuel: false, // Temporairement supprimé car colonne manquante
+      archived: false,
+      is_manuel: false,
     };
   }
 
@@ -417,6 +417,7 @@ transformExtrabatCommande(
       client_id: parseInt(localClientId),
       numero_commande: extrabatCommande.code,
       date_commande: extrabatCommande.date,
+      type_commande: 'normale',
       acompte_verse: 0, // Pas d'acompte versé par défaut
       total_ht: extrabatCommande.totalHT,
       total_ttc: extrabatCommande.totalTTC,

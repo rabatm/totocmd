@@ -148,6 +148,7 @@ function AddProduitDialogFixed({ commandeId }: AddProduitDialogFixedProps) {
                 <SelectValue placeholder="Sélectionner un statut" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={ProduitStatus.SCANNE}>Scanné</SelectItem>
                 <SelectItem value={ProduitStatus.RESERVE}>Réservé</SelectItem>
                 <SelectItem value={ProduitStatus.EN_PREPARATION}>
                   En préparation

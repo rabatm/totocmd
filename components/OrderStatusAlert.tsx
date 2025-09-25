@@ -37,7 +37,7 @@ export default function OrderStatusAlert({
           <div className="flex-1">
             <p className="font-semibold">Commande terminée !</p>
             <p className="text-sm">
-              La commande {orderNumber} est automatiquement passée à "Prêt expédition"
+              La commande {orderNumber} est automatiquement passée à &quot;Prêt expédition&quot;
               car tous les produits sont prêts.
             </p>
           </div>

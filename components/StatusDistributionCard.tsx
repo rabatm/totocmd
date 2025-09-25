@@ -18,17 +18,19 @@ interface StatusDistributionCardProps {
 
 const statusLabels = {
   // Commandes
-  en_attente: 'En attente',
-  en_attente_dacompte: 'Attente acompte',
-  en_cours: 'En cours',
-  pret_expedition: 'Prêt expédition',
-  expedie: 'Expédié',
-  annule: 'Annulé',
+  en_attente: 'EN ATTENTE',
+  en_attente_dacompte: 'EN ATTENTE D\'ACOMPTE',
+  en_cours: 'EN COURS',
+  pret_expedition: 'PRÊT EXPÉDITION',
+  expedie: 'EXPÉDIÉE',
+  annule: 'ANNULÉE',
   // Produits
-  scanne: 'Scanné',
-  reserve: 'Réservé',
-  en_preparation: 'En préparation',
-  livre: 'Livré',
+  scanne: 'SCANNÉ',
+  reserve: 'RÉSERVÉ',
+  en_preparation: 'EN PRÉPARATION',
+  pret_expedition_produit: 'PRÊT EXPÉDITION',
+  expedie_produit: 'EXPÉDIÉ',
+  livre: 'LIVRÉ',
 };
 
 const statusColors = {
@@ -43,6 +45,8 @@ const statusColors = {
   scanne: 'bg-gray-500',
   reserve: 'bg-orange-500',
   en_preparation: 'bg-blue-500',
+  pret_expedition_produit: 'bg-green-500',
+  expedie_produit: 'bg-purple-500',
   livre: 'bg-green-500',
 };
 
@@ -73,10 +77,14 @@ export default function StatusDistributionCard({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`w-3 h-3 rounded-full ${
-                    statusColors[item.statut as keyof typeof statusColors] || 'bg-gray-400'
+                    statusColors[item.statut as keyof typeof statusColors] || 
+                    (type === 'produits' && item.statut === 'pret_expedition' ? statusColors.pret_expedition_produit :
+                     type === 'produits' && item.statut === 'expedie' ? statusColors.expedie_produit : 'bg-gray-400')
                   }`} />
                   <span className="font-medium text-gray-700">
-                    {statusLabels[item.statut as keyof typeof statusLabels] || item.statut}
+                    {statusLabels[item.statut as keyof typeof statusLabels] || 
+                    (type === 'produits' && item.statut === 'pret_expedition' ? statusLabels.pret_expedition_produit :
+                     type === 'produits' && item.statut === 'expedie' ? statusLabels.expedie_produit : item.statut)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

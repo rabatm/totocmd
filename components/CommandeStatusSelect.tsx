@@ -18,12 +18,12 @@ interface CommandeStatusSelectProps {
 }
 
 const statusOptions = [
-  { value: CommandeStatus.EN_ATTENTE, label: 'En attente' },
-  { value: CommandeStatus.EN_ATTENTE_DACOMPTE, label: "En attente d'acompte" },
-  { value: CommandeStatus.EN_COURS, label: 'En cours' },
-  { value: CommandeStatus.PRET_EXPEDITION, label: 'Prêt expédition' },
-  { value: CommandeStatus.EXPEDIE, label: 'Expédiée' },
-  { value: CommandeStatus.ANNULE, label: 'Annulée' },
+  { value: CommandeStatus.EN_ATTENTE, label: 'EN ATTENTE' },
+  { value: CommandeStatus.EN_ATTENTE_DACOMPTE, label: "EN ATTENTE D'ACOMPTE" },
+  { value: CommandeStatus.EN_COURS, label: 'EN COURS' },
+  { value: CommandeStatus.PRET_EXPEDITION, label: 'PRÊT EXPÉDITION' },
+  { value: CommandeStatus.EXPEDIE, label: 'EXPÉDIÉE' },
+  { value: CommandeStatus.ANNULE, label: 'ANNULÉE' },
 ];
 
 export default function CommandeStatusSelect({

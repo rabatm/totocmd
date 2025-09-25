@@ -46,6 +46,7 @@ export interface Commande {
   progression: number;
   expedition_id?: number;
   remarque?: string;
+  cmd_av?: string; // Commande antivirus optionnelle
   total_ttc: number;
   total_ht?: number;
   total_tva?: number;
@@ -95,6 +96,7 @@ export interface CreateCommandeInput {
   date_expedition_previsionnelle?: string;
   acompte_verse?: number;
   remarque?: string;
+  cmd_av?: string; // Commande antivirus optionnelle
   total_ttc: number;
   total_ht?: number;
   total_tva?: number;
@@ -191,11 +193,9 @@ export interface Produit {
   prix_mini?: number;
   prix_conseille?: number;
   tenue_stock: boolean;
-  stock_physique?: number;
+  stock_physique: number;
   stock_mini?: number;
-  // stock_physique: number; // Temporairement commenté car colonne manquante
-  // stock_mini?: number; // Temporairement commenté car colonne manquante
-  // stock_maxi?: number; // Temporairement commenté car colonne manquante
+  stock_maxi?: number;
   poids?: number;
   emplacement?: string;
   notes?: string;
@@ -211,9 +211,43 @@ export interface Produit {
   has_image: boolean;
   has_image_gd: boolean;
   last_sync: string;
-  archived?: boolean;
-  // archived: boolean; // Temporairement commenté car colonne manquante
-  // is_manuel: boolean; // Temporairement commenté car colonne manquante
+  archived: boolean;
+  is_manuel: boolean;
   created_at?: string;
   updated_at?: string;
 }
+
+// Types pour la gestion des stocks
+export type TypeMouvementStock = 'inventaire' | 'reception';
+
+export interface MouvementStock {
+  id: string;
+  produit_id: number;
+  type_mouvement: TypeMouvementStock;
+  quantite_avant?: number;
+  quantite_apres: number;
+  quantite_mouvement: number;
+  prix_unitaire?: number;
+  fournisseur?: string;
+  numero_facture?: string;
+  date_entree?: string;
+  remarques?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CreateMouvementStockInput {
+  produit_id: number;
+  type_mouvement: TypeMouvementStock;
+  quantite_mouvement: number;
+  prix_unitaire?: number;
+  fournisseur?: string;
+  numero_facture?: string;
+  date_entree?: string;
+  remarques?: string;
+}
+
+export const MouvementStockTypes = {
+  INVENTAIRE: 'inventaire' as const,
+  RECEPTION: 'reception' as const,
+};

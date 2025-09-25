@@ -11,12 +11,12 @@ interface RecentOrdersCardProps {
 }
 
 const statusConfig = {
-  en_attente: { label: 'En attente', color: 'bg-gray-100 text-gray-800' },
-  en_attente_dacompte: { label: 'Attente acompte', color: 'bg-yellow-100 text-yellow-800' },
-  en_cours: { label: 'En cours', color: 'bg-blue-100 text-blue-800' },
-  pret_expedition: { label: 'Prêt', color: 'bg-green-100 text-green-800' },
-  expedie: { label: 'Expédié', color: 'bg-purple-100 text-purple-800' },
-  annule: { label: 'Annulé', color: 'bg-red-100 text-red-800' },
+  en_attente: { label: 'EN ATTENTE', color: 'bg-gray-100 text-gray-800' },
+  en_attente_dacompte: { label: 'EN ATTENTE D\'ACOMPTE', color: 'bg-yellow-100 text-yellow-800' },
+  en_cours: { label: 'EN COURS', color: 'bg-blue-100 text-blue-800' },
+  pret_expedition: { label: 'PRÊT EXPÉDITION', color: 'bg-green-100 text-green-800' },
+  expedie: { label: 'EXPÉDIÉE', color: 'bg-purple-100 text-purple-800' },
+  annule: { label: 'ANNULÉE', color: 'bg-red-100 text-red-800' },
 };
 
 export default function RecentOrdersCard({ orders }: RecentOrdersCardProps) {

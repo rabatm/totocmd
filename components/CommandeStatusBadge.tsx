@@ -27,17 +27,19 @@ const getStatusColor = (status: string) => {
 const getStatusLabel = (status: string) => {
   switch (status) {
     case CommandeStatus.EN_ATTENTE:
-      return 'En attente';
+      return 'EN ATTENTE';
+    case CommandeStatus.EN_ATTENTE_DACOMPTE:
+      return 'EN ATTENTE D\'ACOMPTE';
     case CommandeStatus.EN_COURS:
-      return 'En cours';
+      return 'EN COURS';
     case CommandeStatus.PRET_EXPEDITION:
-      return 'Prêt expédition';
+      return 'PRÊT EXPÉDITION';
     case CommandeStatus.EXPEDIE:
-      return 'Expédiée';
+      return 'EXPÉDIÉE';
     case CommandeStatus.ANNULE:
-      return 'Annulée';
+      return 'ANNULÉE';
     default:
-      return status;
+      return status.toUpperCase();
   }
 };
 

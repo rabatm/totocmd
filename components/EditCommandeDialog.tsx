@@ -27,6 +27,7 @@ export default function EditCommandeDialog({ commande }: EditCommandeDialogProps
     date_migration: commande.date_migration || '',
     date_limite_expedition: commande.date_limite_expedition || '',
     remarque: commande.remarque || '',
+    cmd_av: commande.cmd_av || '',
   });
 
   const updateCommande = useUpdateCommande();
@@ -60,6 +61,7 @@ export default function EditCommandeDialog({ commande }: EditCommandeDialogProps
           date_expedition_previsionnelle: dateExpeditionPrevisionnelle,
           date_limite_expedition: dateLimiteExpedition,
           remarque: formData.remarque || undefined,
+          cmd_av: formData.cmd_av || undefined,
         },
       });
 
@@ -122,7 +124,7 @@ export default function EditCommandeDialog({ commande }: EditCommandeDialogProps
               />
               {formData.date_migration && (
                 <p className="text-sm text-gray-600">
-                  Date d'expédition prévisionnelle: {' '}
+                  Date d&apos;expédition prévisionnelle: {' '}
                   <span className="font-semibold">
                     {new Date(calculateDateExpeditionPrevisionnelle(formData.date_migration)).toLocaleDateString('fr-FR')}
                   </span>
@@ -149,6 +151,22 @@ export default function EditCommandeDialog({ commande }: EditCommandeDialogProps
               />
             </div>
           )}
+
+          {/* Commande antivirus */}
+          <div className="space-y-2">
+            <Label htmlFor="cmd_av">Antivirus à installer (optionnel)</Label>
+            <Input
+              id="cmd_av"
+              value={formData.cmd_av}
+              onChange={e =>
+                setFormData(prev => ({
+                  ...prev,
+                  cmd_av: e.target.value,
+                }))
+              }
+              placeholder="ex: Kaspersky Internet Security, Bitdefender..."
+            />
+          </div>
 
           {/* Remarques */}
           <div className="space-y-2">

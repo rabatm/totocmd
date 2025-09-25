@@ -1,7 +1,178 @@
 ````markdown
 # TODO (à remplir avant chaque tâche)
 
-## ✅ Étape 6 — Impression d'étiquettes de commandes avec PDF (RÉALISÉ)
+---
+
+## ✅ Étape 7 —**Résultat** : Le système de gestion des stocks est maintenant complet et fonctionnel avec :
+- Historique des mouvements visible dans les détails produit
+- Statistiques tenant compte des réservations en temps réel
+- Code TypeScript propre sans erreurs de compilation
+
+---
+
+## ✅ Étape 7.3 — Stock en commande clients (RÉALISÉ)
+
+**Objectif** : Ajouter une colonne "Stock en commande clients" pour afficher les produits scannés dans les commandes actives.
+
+**Actions réalisées** :
+
+- ✅ **Hook `useStockEnCommande` créé** :
+  - Récupère les produits avec statut 'scanne' dans les commandes actives
+  - Agrège les quantités par code produit
+  - Filtre sur les états de commande : 'en_attente', 'en_cours', 'pret_expedition'
+
+- ✅ **Colonne ajoutée dans la table stocks** :
+  - Affichage des quantités en violet pour différencier des réservations
+  - Positionnée entre "Stock réservé" et "Stock disponible"
+  - Calcul : stockPhysique - stockReserveQty - stockEnCommandeQty pour disponible
+
+- ✅ **Carte statistique ajoutée** :
+  - "En commande clients" avec icône violette
+  - Affiche la somme totale des produits scannés
+  - Thème violet cohérent avec la colonne
+
+- ✅ **Interface mise à jour** :
+  - Grille de statistiques passée à 5 cartes
+  - Couleurs distinctives : bleu (total), orange (réservé), violet (en commande), jaune (faible), vert (disponible)
+  - Table avec nouvelle colonne "Stock en commande clients"
+
+**Calculs implémentés** :
+
+- **Stock en commande** : Produits avec `statut = 'scanne'` dans commandes actives
+- **Stock disponible réel** : `stockPhysique - stockReserve - stockEnCommande`
+- **Agrégation** : `Object.values(stockEnCommande).reduce((sum, qty) => sum + qty, 0)`
+
+**Résultat** : La visibilité complète des stocks inclut maintenant :
+- Stock physique (inventaire)
+- Stock réservé (commandes en préparation)
+- Stock en commande clients (produits scannés)
+- Stock disponible (réel pour les ventes)
+
+**À tester** :
+- Insérer des données de test avec produits scannés
+- Vérifier les calculs dans l'interface stocks
+- Valider que les statistiques correspondent aux données réelles
+
+---
+
+**Objectif** : Créer une interface conviviale pour saisir rapidement les stocks de plusieurs produits lors d'un inventaire.
+
+**Actions réalisées** :
+
+- ✅ **Nouveau composant `InventoryDialog`** :
+  - Interface moderne avec recherche de produits
+  - Saisie rapide des quantités pour plusieurs produits
+  - Validation en temps réel des modifications
+  - Sauvegarde groupée de tous les changements
+
+- ✅ **Fonctionnalités clés** :
+  - **Recherche** : Filtrage par nom ou code produit
+  - **Saisie intuitive** : Code + Nom + Zone quantité pour chaque produit
+  - **Feedback visuel** : Produits modifiés surlignés en jaune
+  - **Validation** : Contrôle des quantités (≥ 0) avant sauvegarde
+  - **Actions groupées** : Enregistrement de tous les changements en une fois
+
+- ✅ **Intégration dans la page stocks** :
+  - Bouton "Inventaire Rapide" à côté de "Entrée de Stock"
+  - Couleur bleue distinctive pour différencier des réceptions
+  - Accès direct depuis l'interface principale
+
+- ✅ **Logique métier** :
+  - Utilise le type de mouvement "inventaire" (fixe le stock)
+  - Génère automatiquement des remarques d'historique
+  - Met à jour les statistiques en temps réel après sauvegarde
+
+**Utilisation** :
+
+1. **Accès** : Page `/stocks` → Bouton "Inventaire Rapide"
+2. **Recherche** : Filtrer les produits par nom ou code
+3. **Saisie** : Entrer les nouvelles quantités en stock
+4. **Validation** : Vérifier le résumé des modifications
+5. **Sauvegarde** : Enregistrer tous les changements d'un coup
+
+**Avantages** :
+
+- **Rapidité** : Saisie de plusieurs produits sans formulaires répétitifs
+- **Fiabilité** : Validation automatique et historique complet
+- **Confort** : Interface claire avec recherche et feedback visuel
+- **Efficacité** : Un seul clic pour mettre à jour tout l'inventaire
+
+**Résultat** : L'inventaire devient une opération simple et rapide, idéale pour les contrôles périodiques de stock !
+
+---à jour des statistiques de stock avec réservations (RÉALISÉ)
+
+**Objectif** : Mettre à jour les cartes statistiques de la page stock pour prendre en compte les réservations des commandes actives.
+
+**Actions réalisées** :
+
+- ✅ **Carte "Stock réservé" ajoutée** :
+  - Affiche la somme totale des quantités réservées dans les commandes actives
+  - Utilise le hook `useStockReserve` pour récupérer les données en temps réel
+  - Couleur orange distinctive avec icône appropriée
+
+- ✅ **Carte "Stock faible" mise à jour** :
+  - Compte maintenant les produits où le stock disponible (physique - réservé) < stock minimum
+  - Logique corrigée pour refléter la vraie disponibilité des produits
+  - Icône AlertTriangle pour indiquer les problèmes de stock
+
+- ✅ **Carte "Stock disponible" corrigée** :
+  - Calcule la somme des stocks disponibles (physique - réservé) pour tous les produits
+  - Remplace l'ancienne logique basée uniquement sur le stock physique
+  - Utilise `Math.max(0, stockPhysique - stockReserveQty)` pour éviter les valeurs négatives
+
+- ✅ **Interface utilisateur améliorée** :
+  - Grille de 4 cartes au lieu de 3 pour une meilleure organisation
+  - Icônes Lucide React cohérentes (Package, AlertTriangle)
+  - Couleurs distinctives pour chaque type de statistique
+
+**Calculs implémentés** :
+
+- **Stock réservé** : `Object.values(stockReserve).reduce((sum, qty) => sum + qty, 0)`
+- **Stock faible** : Produits où `(stockPhysique - stockReserveQty) < stockMini`
+- **Stock disponible** : `Σ Math.max(0, stockPhysique - stockReserveQty)` pour tous les produits
+
+**Résultat** : Les statistiques de stock reflètent maintenant la vraie disponibilité des stocks en tenant compte des réservations des commandes en cours. Les utilisateurs peuvent voir :
+- Combien de stock est physiquement disponible
+- Combien est réservé dans les commandes actives  
+- Quels produits sont en rupture de stock réelle
+- La valeur totale du stock disponible
+
+---
+
+## ✅ Étape 7.1 — Corrections TypeScript et hooks manquants (RÉALISÉ)
+
+**Objectif** : Résoudre les erreurs TypeScript et ajouter les hooks manquants pour le système de stock.
+
+**Actions réalisées** :
+
+- ✅ **Hook `useMouvementsStock` ajouté** :
+  - Créé dans `/hooks/useStock.ts` pour récupérer l'historique des mouvements de stock
+  - Prend un `produitId` en paramètre et retourne les mouvements triés par date
+  - Utilisé par `ProductDetailsDialog` pour afficher l'historique
+
+- ✅ **Hook `useStockReserve` restauré** :
+  - Le hook avait été supprimé accidentellement, remis en place
+  - Agrège les quantités réservées depuis les commandes actives
+  - Filtre sur les statuts `reserve`, `en_preparation`, `pret_expedition`
+
+- ✅ **Erreurs TypeScript corrigées** :
+  - Types explicites pour `Object.values(stockReserve).reduce()` dans `app/stocks/page.tsx`
+  - Suppression de la logique `indeterminate` incompatible dans `app/commandes/[id]/page.tsx`
+  - Nettoyage des variables non utilisées (`isPartiallySelected`)
+
+- ✅ **Vérification finale** :
+  - Toutes les erreurs TypeScript résolues (`npx tsc --noEmit` passe sans erreur)
+  - Composant `ProductDetailsDialog` peut maintenant charger l'historique des mouvements
+  - Page stocks affiche correctement les statistiques avec réservations
+
+**Résultat** : Le système de gestion des stocks est maintenant complet et fonctionnel avec :
+- Historique des mouvements de stock visible dans les détails produit
+- Statistiques tenant compte des réservations en temps réel
+- Code TypeScript propre sans erreurs de compilation
+
+---
+
+---
 
 **Objectif** : Créer un système d'impression d'étiquettes pour les commandes
 avec génération PDF pour une meilleure compatibilité.

@@ -76,7 +76,7 @@ export default function CommandesList() {
   if (statusFilter) {
     filteredCommandes = filteredCommandes.filter(c => c.etat === statusFilter);
   } else {
-    filteredCommandes = filteredCommandes.filter(c => c.etat !== 'expedie');
+    filteredCommandes = filteredCommandes;
   }
 
   // Filtre par recherche sur le numéro de commande
@@ -99,12 +99,6 @@ export default function CommandesList() {
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('fr-FR');
-  };
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount);
   };
 
   return (
@@ -174,15 +168,16 @@ export default function CommandesList() {
               onChange={e => setStatusFilter(e.target.value)}
               className="border-2 border-orange-200 rounded-lg px-3 py-2 text-sm focus:border-orange-400 focus:outline-none shadow"
             >
-              <option value="">Tous statuts</option>
-              <option value="en_attente">En attente</option>
+              <option value="">TOUS LES STATUTS</option>
+              <option value="en_attente">EN ATTENTE</option>
               <option value="en_attente_dacompte">
-                En attente d&apos;acompte
+                EN ATTENTE D&apos;ACOMPTE
               </option>
-              <option value="en_cours">En cours</option>
-              <option value="pret_expedition">Prêt expédition</option>
-              <option value="expedie">Expédiée</option>
-              <option value="annule">Annulée</option>
+              <option value="en_cours">EN COURS</option>
+              <option value="pret_expedition">PRÊT EXPÉDITION</option>
+              <option value="expedie">EXPÉDIÉE</option>
+              <option value="livre">LIVRÉE</option>
+              <option value="annule">ANNULÉE</option>
             </select>
           </div>
         </div>
@@ -198,13 +193,10 @@ export default function CommandesList() {
               <TableHead className="text-blue-900 font-bold">Client</TableHead>
               <TableHead className="text-blue-900 font-bold">Statut</TableHead>
               <TableHead className="text-blue-900 font-bold">
-                Progression
-              </TableHead>
-              <TableHead className="text-blue-900 font-bold">
                 Dates importantes
               </TableHead>
               <TableHead className="text-blue-900 font-bold">
-                Total TTC
+                Progression
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -274,50 +266,6 @@ export default function CommandesList() {
                 </TableCell>
                 <TableCell>
                   {(() => {
-                    // Calculer la progression en temps réel basée sur les produits
-                    const calculatedProgression = calculateProgression(commande.commande_produits);
-                    return (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-20 bg-gray-200 rounded-full h-3 shadow-inner">
-                          <div
-                            className="h-3 rounded-full transition-all duration-300"
-                            style={{
-                              width: `${calculatedProgression}%`,
-                              background:
-                                calculatedProgression === 100
-                                  ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)'
-                                  : calculatedProgression >= 80
-                                  ? 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)'
-                                  : calculatedProgression >= 50
-                                  ? 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)'
-                                  : 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
-                            }}
-                          >
-                            {calculatedProgression === 100 && (
-                              <span className="text-xs text-white font-bold flex items-center justify-end pr-1 h-full">✓</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <span className={`text-sm font-bold ${
-                            calculatedProgression === 100
-                              ? 'text-green-600'
-                              : 'text-gray-600'
-                          }`}>
-                            {calculatedProgression}%
-                          </span>
-                          {calculatedProgression === 100 && (
-                            <span className="text-green-600 text-xs font-semibold">
-                              PRÊTE
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </TableCell>
-                <TableCell>
-                  {(() => {
                     // Pour les commandes de migration, afficher les dates importantes avec warnings
                     if (commande.type_commande === 'migration_ouverture') {
                       const today = new Date();
@@ -381,8 +329,49 @@ export default function CommandesList() {
                     return <span className="text-gray-400 text-xs">-</span>;
                   })()}
                 </TableCell>
-                <TableCell className="font-semibold text-blue-900">
-                  {formatCurrency(commande.total_ttc)}
+                <TableCell>
+                  {(() => {
+                    // Calculer la progression en temps réel basée sur les produits
+                    const calculatedProgression = calculateProgression(commande.commande_produits);
+                    return (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-20 bg-gray-200 rounded-full h-3 shadow-inner">
+                          <div
+                            className="h-3 rounded-full transition-all duration-300"
+                            style={{
+                              width: `${calculatedProgression}%`,
+                              background:
+                                calculatedProgression === 100
+                                  ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)'
+                                  : calculatedProgression >= 80
+                                  ? 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)'
+                                  : calculatedProgression >= 50
+                                  ? 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)'
+                                  : 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
+                            }}
+                          >
+                            {calculatedProgression === 100 && (
+                              <span className="text-xs text-white font-bold flex items-center justify-end pr-1 h-full">✓</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`text-sm font-bold ${
+                            calculatedProgression === 100
+                              ? 'text-green-600'
+                              : 'text-gray-600'
+                          }`}>
+                            {calculatedProgression}%
+                          </span>
+                          {calculatedProgression === 100 && (
+                            <span className="text-green-600 text-xs font-semibold">
+                              PRÊTE
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </TableCell>
               </TableRow>
             ))}

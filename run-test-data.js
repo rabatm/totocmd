@@ -1,0 +1,13 @@
+console.log('🔄 Script pour insérer des données de test dans Supabase');
+console.log('');
+console.log('📋 Instructions:');
+console.log('1. Ouvrez votre dashboard Supabase: https://supabase.com/dashboard/project/wsrcjuknxapuxifhdrfb/sql');
+console.log('2. Copiez le contenu du fichier test-stock-en-commande.sql');
+console.log('3. Collez-le dans l\'éditeur SQL et exécutez-le');
+console.log('');
+console.log('🎯 Ce script va créer:');
+console.log('• Des produits avec stock physique');
+console.log('• Des commandes de test (en_attente, en_cours)');
+console.log('• Des produits scannés dans ces commandes');
+console.log('');
+console.log('✅ Après exécution, vérifiez la page stocks pour voir la colonne "Stock en commande clients"');
