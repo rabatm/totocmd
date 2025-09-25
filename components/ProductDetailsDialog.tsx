@@ -18,7 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useMouvementsStock } from '@/hooks/useStock';
-import { Produit } from '@/src/types';
+import { Produit, MouvementStock } from '@/src/types';
 import {
   Calendar,
   DollarSign,
@@ -109,11 +109,11 @@ export default function ProductDetailsDialog({
 // Composant séparé pour le contenu du produit
 function ProductContent({ produit, mouvements, isLoading, formatPrice, formatDate, stockStatus }: {
   produit: Produit;
-  mouvements: any[];
+  mouvements: MouvementStock[];
   isLoading: boolean;
   formatPrice: (price: number) => string;
   formatDate: (dateString: string) => string;
-  stockStatus: { label: string; variant: any };
+  stockStatus: { label: string; variant: "default" | "destructive" | "outline" | "secondary" };
 }) {
   return (
     <div className="space-y-6">
