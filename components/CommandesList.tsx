@@ -18,6 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useCommandes } from '@/hooks/useCommandes';
+import { calculateProgression } from '@/lib/progressionUtils';
 import { Edit2, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -33,6 +34,7 @@ export default function CommandesList() {
   );
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all'); // 'all', 'normale', 'migration_ouverture'
   const { data: commandes, isLoading, error } = useCommandes();
   const router = useRouter();
 
@@ -62,18 +64,32 @@ export default function CommandesList() {
 
   // Filtre par défaut : on exclut les commandes expédiées et livrées
   let filteredCommandes = commandes ?? [];
+
+  // Filtre par type de commande
+  if (typeFilter !== 'all') {
+    filteredCommandes = filteredCommandes.filter(c =>
+      (c.type_commande || 'normale') === typeFilter
+    );
+  }
+
   // Filtre par statut si sélectionné
   if (statusFilter) {
     filteredCommandes = filteredCommandes.filter(c => c.etat === statusFilter);
   } else {
     filteredCommandes = filteredCommandes.filter(c => c.etat !== 'expedie');
   }
+
   // Filtre par recherche sur le numéro de commande
   if (search.trim()) {
     filteredCommandes = filteredCommandes.filter(c =>
       c.numero_commande.toLowerCase().includes(search.trim().toLowerCase()),
     );
   }
+
+  // Compteurs pour les badges (on exclut les expédiées du comptage par défaut)
+  const allCommandes = (commandes ?? []).filter(c => c.etat !== 'expedie');
+  const normalesCount = allCommandes.filter(c => (c.type_commande || 'normale') === 'normale').length;
+  const migrationsCount = allCommandes.filter(c => c.type_commande === 'migration_ouverture').length;
 
   const totalPages = Math.ceil(filteredCommandes.length / pageSize);
   const paginatedCommandes = filteredCommandes.slice(
@@ -94,14 +110,51 @@ export default function CommandesList() {
   return (
     <Card className="shadow-xl bg-gradient-to-br from-blue-50 via-white to-orange-50 rounded-2xl border-0">
       <CardHeader className="sticky top-0 z-10 bg-gradient-to-r from-blue-100 via-white to-orange-100 rounded-t-2xl shadow-md">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <CardTitle className="text-2xl font-extrabold text-blue-900">
-            Liste des commandes{' '}
-            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-base ml-2">
-              {filteredCommandes.length}
-            </span>
-          </CardTitle>
-          <div className="flex gap-2 items-center">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <CardTitle className="text-2xl font-extrabold text-blue-900">
+              Liste des commandes{' '}
+              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-base ml-2">
+                {filteredCommandes.length}
+              </span>
+            </CardTitle>
+          </div>
+
+          {/* Boutons de filtres par type */}
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => setTypeFilter('all')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                typeFilter === 'all'
+                  ? 'bg-gray-800 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Tous ({allCommandes.length})
+            </button>
+            <button
+              onClick={() => setTypeFilter('normale')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                typeFilter === 'normale'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+              }`}
+            >
+              📦 Commandes ({normalesCount})
+            </button>
+            <button
+              onClick={() => setTypeFilter('migration_ouverture')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                typeFilter === 'migration_ouverture'
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+              }`}
+            >
+              🔄 Migration/Ouverture ({migrationsCount})
+            </button>
+          </div>
+
+          <div className="flex gap-2 items-center flex-wrap">
             <Button
               variant="default"
               className="font-semibold"
@@ -148,6 +201,9 @@ export default function CommandesList() {
                 Progression
               </TableHead>
               <TableHead className="text-blue-900 font-bold">
+                Dates importantes
+              </TableHead>
+              <TableHead className="text-blue-900 font-bold">
                 Total TTC
               </TableHead>
             </TableRow>
@@ -164,7 +220,14 @@ export default function CommandesList() {
                   {formatDate(commande.date_commande)}
                 </TableCell>
                 <TableCell className="font-semibold text-blue-900">
-                  {commande.numero_commande.toUpperCase()}
+                  <div className="flex items-center gap-2">
+                    <span>{commande.numero_commande.toUpperCase()}</span>
+                    {commande.type_commande === 'migration_ouverture' && (
+                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium">
+                        🔄 Migration
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <ClientName clientId={commande.client_id} />
@@ -210,25 +273,113 @@ export default function CommandesList() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-20 bg-gray-200 rounded-full h-3 shadow-inner">
-                      <div
-                        className="h-3 rounded-full transition-all duration-300"
-                        style={{
-                          width: `${commande.progression}%`,
-                          background:
-                            commande.progression < 50
-                              ? 'linear-gradient(90deg, #3b82f6 0%, #60a5fa 50%, #22c55e 100%)' // bleu vers vert
-                              : commande.progression < 100
-                              ? 'linear-gradient(90deg, #22c55e 0%, #4ade80 60%, #a78bfa 100%)' // vert vers violet
-                              : 'linear-gradient(90deg, #6366f1 0%, #a78bfa 50%, #f59e42 100%)', // violet vers orange
-                        }}
-                      />
-                    </div>
-                    <span className="text-sm text-gray-600 font-bold">
-                      {commande.progression}%
-                    </span>
-                  </div>
+                  {(() => {
+                    // Calculer la progression en temps réel basée sur les produits
+                    const calculatedProgression = calculateProgression(commande.commande_produits);
+                    return (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-20 bg-gray-200 rounded-full h-3 shadow-inner">
+                          <div
+                            className="h-3 rounded-full transition-all duration-300"
+                            style={{
+                              width: `${calculatedProgression}%`,
+                              background:
+                                calculatedProgression === 100
+                                  ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)'
+                                  : calculatedProgression >= 80
+                                  ? 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)'
+                                  : calculatedProgression >= 50
+                                  ? 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)'
+                                  : 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
+                            }}
+                          >
+                            {calculatedProgression === 100 && (
+                              <span className="text-xs text-white font-bold flex items-center justify-end pr-1 h-full">✓</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`text-sm font-bold ${
+                            calculatedProgression === 100
+                              ? 'text-green-600'
+                              : 'text-gray-600'
+                          }`}>
+                            {calculatedProgression}%
+                          </span>
+                          {calculatedProgression === 100 && (
+                            <span className="text-green-600 text-xs font-semibold">
+                              PRÊTE
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </TableCell>
+                <TableCell>
+                  {(() => {
+                    // Pour les commandes de migration, afficher les dates importantes avec warnings
+                    if (commande.type_commande === 'migration_ouverture') {
+                      const today = new Date();
+                      const dateMigration = commande.date_migration ? new Date(commande.date_migration) : null;
+                      const dateExpedition = commande.date_expedition_previsionnelle ? new Date(commande.date_expedition_previsionnelle) : null;
+
+                      // Vérifier si la commande est en retard (pas encore expédiée et date d'expédition dépassée)
+                      const isLate = dateExpedition &&
+                                    today > dateExpedition &&
+                                    !['expedie', 'livre'].includes(commande.etat);
+
+                      const isUrgent = dateExpedition &&
+                                      !['expedie', 'livre'].includes(commande.etat) &&
+                                      (dateExpedition.getTime() - today.getTime()) / (1000 * 60 * 60 * 24) <= 7; // 7 jours ou moins
+
+                      return (
+                        <div className="space-y-1">
+                          {/* Date de migration */}
+                          <div className="flex items-center text-xs">
+                            <span className="text-orange-700 font-medium">🔄 Migration:</span>
+                            <span className="ml-1 text-gray-700">
+                              {dateMigration ? formatDate(commande.date_migration) : '-'}
+                            </span>
+                          </div>
+
+                          {/* Date d'expédition avec warning */}
+                          <div className="flex items-center text-xs">
+                            <span className="text-orange-700 font-medium">📦 Expédition:</span>
+                            <span className={`ml-1 ${
+                              isLate ? 'text-red-700 font-bold' :
+                              isUrgent ? 'text-orange-700 font-bold' :
+                              'text-gray-700'
+                            }`}>
+                              {dateExpedition ? formatDate(commande.date_expedition_previsionnelle) : '-'}
+                            </span>
+                            {isLate && (
+                              <span className="ml-1 text-red-600 font-bold" title="En retard !">
+                                ⚠️
+                              </span>
+                            )}
+                            {isUrgent && !isLate && (
+                              <span className="ml-1 text-orange-600" title="Urgent - moins de 7 jours">
+                                ⏰
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Pour les commandes normales, afficher la date limite d'expédition si elle existe
+                    if (commande.date_limite_expedition) {
+                      return (
+                        <div className="text-xs text-gray-700">
+                          <span className="font-medium">📦 Limite:</span>
+                          <span className="ml-1">{formatDate(commande.date_limite_expedition)}</span>
+                        </div>
+                      );
+                    }
+
+                    return <span className="text-gray-400 text-xs">-</span>;
+                  })()}
                 </TableCell>
                 <TableCell className="font-semibold text-blue-900">
                   {formatCurrency(commande.total_ttc)}

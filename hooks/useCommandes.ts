@@ -6,10 +6,33 @@ export const useCommandes = () => {
   return useQuery({
     queryKey: ['commandes'],
     queryFn: async (): Promise<CommandeWithDetails[]> => {
-      // Première requête : récupérer juste les commandes
+      // Récupérer les commandes avec leurs produits pour calculer la progression
       const { data, error } = await supabase
         .from('commandes')
-        .select('*')
+        .select(`
+          *,
+          clients(
+            id,
+            name,
+            email,
+            phone,
+            address,
+            city,
+            postal_code,
+            country
+          ),
+          commande_produits(
+            id,
+            nom_produit,
+            code_produit,
+            numero_serie,
+            quantite,
+            statut,
+            date_scan,
+            remarque,
+            personnel_id
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {

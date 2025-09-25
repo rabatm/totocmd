@@ -56,68 +56,44 @@ const updateProgressionInDB = async (commandeId: string) => {
   await supabase.from('commandes').update(updates).eq('id', commandeId);
 };
 
-// Hook pour modifier le statut d'une commande
-export const useUpdateCommandeStatus = () => {
+export const useBulkProductUpdate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, etat }: { id: string; etat: string }) => {
-      const { data, error } = await supabase
-        .from('commandes')
-        .update({
-          etat,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) {
-        throw new Error(`Erreur lors de la mise à jour: ${error.message}`);
-      }
-
-      return data;
-    },
-    onSuccess: data => {
-      // Invalider les caches pour refraîchir les données
-      queryClient.invalidateQueries({ queryKey: ['commandes'] });
-      queryClient.invalidateQueries({ queryKey: ['commande', data.id] });
-    },
-  });
-};
-
-// Hook pour modifier le statut d'un produit
-export const useUpdateProduitStatus = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, statut, commandeId }: { id: string; statut: string; commandeId?: string }) => {
-      const { data, error } = await supabase
+    mutationFn: async ({
+      commandeId,
+      newStatus,
+      productIds,
+    }: {
+      commandeId: string;
+      newStatus: string;
+      productIds?: string[]; // Si fourni, met à jour seulement ces produits
+    }) => {
+      let query = supabase
         .from('commande_produits')
-        .update({
-          statut,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-        .select()
-        .single();
+        .update({ statut: newStatus })
+        .eq('commande_id', commandeId);
+
+      // Si des IDs spécifiques sont fournis, les filtrer
+      if (productIds && productIds.length > 0) {
+        query = query.in('id', productIds);
+      }
+
+      const { data, error } = await query.select();
 
       if (error) {
-        throw new Error(`Erreur lors de la mise à jour: ${error.message}`);
+        throw new Error(`Erreur lors de la mise à jour des produits: ${error.message}`);
       }
 
       return data;
     },
-    onSuccess: async (data, variables) => {
-      // Mettre à jour la progression et le statut de la commande si commandeId est fourni
-      const commandeIdToUse = variables.commandeId || data.commande_id;
-      if (commandeIdToUse) {
-        await updateProgressionInDB(commandeIdToUse);
-      }
+    onSuccess: async (_, variables) => {
+      // Mettre à jour la progression en base
+      await updateProgressionInDB(variables.commandeId);
 
-      // Invalider les caches
+      // Invalider les requêtes liées à cette commande
+      queryClient.invalidateQueries({ queryKey: ['commande', variables.commandeId] });
       queryClient.invalidateQueries({ queryKey: ['commandes'] });
-      queryClient.invalidateQueries({ queryKey: ['commande'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['pc-tracking'] });
     },

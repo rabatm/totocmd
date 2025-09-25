@@ -1,12 +1,16 @@
 'use client';
 
 import AddProduitDialog from '@/components/AddProduitDialogV2';
+import BulkStatusButton from '@/components/BulkStatusButton';
 import ClientName from '@/components/ClientName';
 import CommandeStatusSelect from '@/components/CommandeStatusSelect';
+import EditCommandeDialog from '@/components/EditCommandeDialog';
 import EditProduitDialog from '@/components/EditProduitDialog';
+import OrderStatusAlert from '@/components/OrderStatusAlert';
 import PrintLabel from '@/components/PrintLabel';
 import ProduitActions from '@/components/ProduitActions';
 import ProduitStatusSelect from '@/components/ProduitStatusSelect';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import ShopConfigDialog from '@/components/ShopConfigDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +27,9 @@ import { CommandeProduit } from '@/src/types';
 import { ArrowLeft, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { use, useState } from 'react';
+import SelectedBulkStatusButton from '@/components/SelectedBulkStatusButton';
+import { Checkbox } from '@/components/ui/checkbox';
+import { calculateProgression } from '@/lib/progressionUtils';
 
 interface CommandeDetailPageProps {
   params: Promise<{ id: string }>;
@@ -36,27 +43,9 @@ export default function CommandeDetailPage({
   const [editingProduit, setEditingProduit] = useState<CommandeProduit | null>(
     null,
   );
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
 
-  // Fonction pour calculer la progression basée sur les statuts des produits
-  const calculateProgression = (produits: CommandeProduit[] | undefined) => {
-    if (!produits || produits.length === 0) return 0;
-
-    const statusWeights = {
-      scanne: 10,
-      en_preparation: 30,
-      pret_expedition: 70,
-      expedie: 90,
-      livre: 100,
-    };
-
-    const totalProgress = produits.reduce((sum, produit) => {
-      return (
-        sum + (statusWeights[produit.statut as keyof typeof statusWeights] || 0)
-      );
-    }, 0);
-
-    return Math.round(totalProgress / produits.length);
-  };
+  // Utilisation de la fonction utilitaire partagée
 
   // Fonction pour calculer le détail des statuts
   const getStatusBreakdown = (produits: CommandeProduit[] | undefined) => {
@@ -84,6 +73,33 @@ export default function CommandeDetailPage({
     if (!dateString) return '-';
     return new Date(dateString).toLocaleString('fr-FR');
   };
+
+  // Fonctions de gestion de sélection
+  const handleSelectProduct = (productId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedProducts(prev => [...prev, productId]);
+    } else {
+      setSelectedProducts(prev => prev.filter(id => id !== productId));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && commande?.commande_produits) {
+      setSelectedProducts(commande.commande_produits.map(p => p.id));
+    } else {
+      setSelectedProducts([]);
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedProducts([]);
+  };
+
+  const isAllSelected = commande?.commande_produits
+    ? selectedProducts.length === commande.commande_produits.length && commande.commande_produits.length > 0
+    : false;
+
+  const isPartiallySelected = selectedProducts.length > 0 && !isAllSelected;
 
   if (isLoading) {
     return (
@@ -125,7 +141,16 @@ export default function CommandeDetailPage({
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <ProtectedRoute>
+      {/* Alerte de changement de statut automatique */}
+      {commande && (
+        <OrderStatusAlert
+          currentStatus={commande.etat}
+          progression={calculatedProgression}
+          orderNumber={commande.numero_commande}
+        />
+      )}
+      <div className="container mx-auto p-6">
       <div className="mb-4">
         <div className="flex items-center justify-between">
           <Link href="/commandes">
@@ -154,17 +179,37 @@ export default function CommandeDetailPage({
                     N° {commande?.numero_commande.toUpperCase()}
                   </span>
                 </div>
-                <div>
+                <div className="flex items-center gap-2">
                   {commande && (
                     <CommandeStatusSelect
                       commandeId={commande.id}
                       currentStatus={commande.etat}
                     />
                   )}
+                  {commande && <EditCommandeDialog commande={commande} />}
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Type de commande */}
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Type de commande
+                </label>
+                <div className="mt-1">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                    commande?.type_commande === 'migration_ouverture'
+                      ? 'bg-orange-100 text-orange-800'
+                      : 'bg-blue-100 text-blue-800'
+                  }`}>
+                    {commande?.type_commande === 'migration_ouverture'
+                      ? '🔄 Migration/Ouverture'
+                      : '📦 Commande normale'
+                    }
+                  </span>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500">
@@ -185,27 +230,72 @@ export default function CommandeDetailPage({
                   </div>
                 </div>
               </div>
+
+              {/* Dates spécifiques pour migration */}
+              {commande?.type_commande === 'migration_ouverture' && (
+                <div className="grid grid-cols-2 gap-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <div>
+                    <label className="text-sm font-medium text-orange-700">
+                      Date de migration
+                    </label>
+                    <div className="flex items-center mt-1">
+                      <Calendar className="h-4 w-4 mr-2 text-orange-600" />
+                      <span className="text-orange-900 font-semibold">
+                        {formatDate(commande?.date_migration)}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-orange-700">
+                      Expédition prévisionnelle
+                    </label>
+                    <div className="flex items-center mt-1">
+                      <Calendar className="h-4 w-4 mr-2 text-orange-600" />
+                      <span className="text-orange-900 font-semibold">
+                        {formatDate(commande?.date_expedition_previsionnelle)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center space-x-2">
                 <label className="text-sm font-medium text-gray-500">
                   Progression
                 </label>
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                <div className="flex-1 bg-gray-200 rounded-full h-3">
                   <div
-                    className="h-2 rounded-full transition-all duration-300"
+                    className="h-3 rounded-full transition-all duration-500 flex items-center justify-end pr-2"
                     style={{
                       width: `${calculatedProgression}%`,
                       background:
-                        calculatedProgression < 50
-                          ? 'linear-gradient(90deg, #3b82f6 0%, #60a5fa 50%, #22c55e 100%)'
-                          : calculatedProgression < 100
-                          ? 'linear-gradient(90deg, #22c55e 0%, #4ade80 60%, #a78bfa 100%)'
-                          : 'linear-gradient(90deg, #6366f1 0%, #a78bfa 50%, #f59e42 100%)',
+                        calculatedProgression === 100
+                          ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)'
+                          : calculatedProgression >= 80
+                          ? 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)'
+                          : calculatedProgression >= 50
+                          ? 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)'
+                          : 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
                     }}
-                  />
+                  >
+                    {calculatedProgression === 100 && (
+                      <span className="text-xs text-white font-bold">✓</span>
+                    )}
+                  </div>
                 </div>
-                <span className="text-sm font-medium">
-                  {calculatedProgression}%
-                </span>
+                <div className="flex items-center gap-1">
+                  <span className={`text-sm font-bold ${
+                    calculatedProgression === 100
+                      ? 'text-green-600'
+                      : 'text-gray-700'
+                  }`}>
+                    {calculatedProgression}%
+                  </span>
+                  {calculatedProgression === 100 && (
+                    <span className="text-green-600 text-sm font-semibold">
+                      PRÊTE
+                    </span>
+                  )}
+                </div>
               </div>
               {/* Détail des statuts */}
               {commande?.commande_produits &&
@@ -267,15 +357,70 @@ export default function CommandeDetailPage({
                 <CardTitle className="text-blue-900">
                   Produits ({commande?.commande_produits?.length || 0})
                 </CardTitle>
-                {commande && <AddProduitDialog commandeId={commande.id} />}
+                <div className="flex items-center gap-2">
+                  {commande && commande.commande_produits && commande.commande_produits.length > 0 && (
+                    <>
+                      <BulkStatusButton
+                        commandeId={commande.id}
+                        products={commande.commande_produits}
+                        targetStatus="en_preparation"
+                        label="En préparation"
+                        variant="outline"
+                        className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                      />
+                      <BulkStatusButton
+                        commandeId={commande.id}
+                        products={commande.commande_produits}
+                        targetStatus="pret_expedition"
+                        label="Tout prêt"
+                        variant="default"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      />
+                      <BulkStatusButton
+                        commandeId={commande.id}
+                        products={commande.commande_produits}
+                        targetStatus="expedie"
+                        label="Expédié"
+                        variant="outline"
+                        className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                      />
+                    </>
+                  )}
+                  {commande && <AddProduitDialog commandeId={commande.id} />}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
+              {/* Actions pour produits sélectionnés */}
+              {selectedProducts.length > 0 && commande && (
+                <div className="mb-4">
+                  <SelectedBulkStatusButton
+                    commandeId={commande.id}
+                    selectedProducts={commande.commande_produits?.filter(p =>
+                      selectedProducts.includes(p.id)
+                    ) || []}
+                    onClearSelection={clearSelection}
+                  />
+                </div>
+              )}
+
               {commande?.commande_produits &&
               commande.commande_produits.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          aria-label="Sélectionner tous les produits"
+                          ref={(ref) => {
+                            if (ref) {
+                              ref.indeterminate = isPartiallySelected;
+                            }
+                          }}
+                        />
+                      </TableHead>
                       <TableHead>Produit</TableHead>
                       <TableHead>Code produit</TableHead>
                       <TableHead>N° de série</TableHead>
@@ -290,6 +435,15 @@ export default function CommandeDetailPage({
                     {commande.commande_produits.map(
                       (produit: CommandeProduit) => (
                         <TableRow key={produit.id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedProducts.includes(produit.id)}
+                              onCheckedChange={(checked) =>
+                                handleSelectProduct(produit.id, !!checked)
+                              }
+                              aria-label={`Sélectionner ${produit.nom_produit}`}
+                            />
+                          </TableCell>
                           <TableCell className="font-medium">
                             {produit.nom_produit}
                           </TableCell>
@@ -338,6 +492,7 @@ export default function CommandeDetailPage({
           )}
         </div>
       </Card>
-    </div>
+      </div>
+    </ProtectedRoute>
   );
 }

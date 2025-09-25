@@ -24,12 +24,17 @@ export interface Personnel {
   updated_at?: string;
 }
 
+export type TypeCommande = 'normale' | 'migration_ouverture';
+
 export interface Commande {
   id: string;
   client_id: number;
   numero_commande: string;
   date_commande?: string;
   date_limite_expedition?: string;
+  type_commande: TypeCommande;
+  date_migration?: string;
+  date_expedition_previsionnelle?: string;
   acompte_verse: number;
   etat:
     | 'en_attente'
@@ -85,6 +90,9 @@ export interface CreateCommandeInput {
   numero_commande: string;
   date_commande?: string;
   date_limite_expedition?: string;
+  type_commande?: TypeCommande;
+  date_migration?: string;
+  date_expedition_previsionnelle?: string;
   acompte_verse?: number;
   remarque?: string;
   total_ttc: number;
@@ -94,6 +102,11 @@ export interface CreateCommandeInput {
 }
 
 // Status helpers
+export const CommandeTypes = {
+  NORMALE: 'normale' as const,
+  MIGRATION_OUVERTURE: 'migration_ouverture' as const,
+};
+
 export const CommandeStatus = {
   EN_ATTENTE: 'en_attente' as const,
   EN_ATTENTE_DACOMPTE: 'en_attente_dacompte' as const,

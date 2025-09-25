@@ -3,12 +3,15 @@
 import ClientSelect from '@/components/ClientSelect';
 import ImportSourceSelector from '@/components/ImportSourceSelector';
 import ExtrabatCommandeList from '@/components/ExtrabatCommandeList';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateCommande } from '@/hooks/useCommandeMutations';
+import { TypeCommande, CommandeTypes } from '@/src/types';
+import { calculateDateExpeditionPrevisionnelle } from '@/lib/dateUtils';
 import { ArrowLeft, Loader2, Plus, Save } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -27,6 +30,8 @@ interface FormData {
   numero_commande: string;
   date_commande: string;
   date_limite_expedition: string;
+  type_commande: TypeCommande;
+  date_migration: string;
   acompte_verse: number;
   total_ttc: number;
   total_ht: number;
@@ -55,6 +60,8 @@ export default function CreateCommandePage() {
     numero_commande: '',
     date_commande: new Date().toISOString().split('T')[0],
     date_limite_expedition: '',
+    type_commande: CommandeTypes.NORMALE,
+    date_migration: '',
     acompte_verse: 0,
     total_ttc: 0,
     total_ht: 0,
@@ -110,12 +117,26 @@ export default function CreateCommandePage() {
       return;
     }
 
+    if (formData.type_commande === CommandeTypes.MIGRATION_OUVERTURE && !formData.date_migration) {
+      alert('Veuillez saisir une date de migration pour ce type de commande');
+      return;
+    }
+
     try {
+      // Calculer la date d'expédition prévisionnelle si c'est une migration
+      const dateExpeditionPrevisionnelle =
+        formData.type_commande === CommandeTypes.MIGRATION_OUVERTURE && formData.date_migration
+          ? calculateDateExpeditionPrevisionnelle(formData.date_migration)
+          : undefined;
+
       const newCommande = await createCommande.mutateAsync({
         client_id: parseInt(formData.client_id),
         numero_commande: formData.numero_commande,
         date_commande: formData.date_commande,
         date_limite_expedition: formData.date_limite_expedition || undefined,
+        type_commande: formData.type_commande,
+        date_migration: formData.date_migration || undefined,
+        date_expedition_previsionnelle: dateExpeditionPrevisionnelle,
         acompte_verse: formData.acompte_verse,
         total_ttc: formData.total_ttc,
         total_ht: formData.total_ht || undefined,
@@ -131,7 +152,8 @@ export default function CreateCommandePage() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <ProtectedRoute>
+      <div className="container mx-auto p-6 max-w-4xl">
       {/* En-tête */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
@@ -206,7 +228,8 @@ export default function CreateCommandePage() {
           />
         ) : null}
       </div>
-    </div>
+      </div>
+    </ProtectedRoute>
   );
 }
 
@@ -255,6 +278,26 @@ function ManualOrderForm({ formData, setFormData, handleSubmit, createCommande, 
               </div>
             </div>
 
+            {/* Type de commande */}
+            <div className="space-y-2">
+              <Label htmlFor="type_commande">Type de commande *</Label>
+              <select
+                id="type_commande"
+                value={formData.type_commande}
+                onChange={e =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    type_commande: e.target.value as TypeCommande,
+                  }))
+                }
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                required
+              >
+                <option value={CommandeTypes.NORMALE}>📦 Commande normale</option>
+                <option value={CommandeTypes.MIGRATION_OUVERTURE}>🔄 Migration/Ouverture</option>
+              </select>
+            </div>
+
             <div className="grid md:grid-cols-2 gap-4">
               {/* Date de commande */}
               <div className="space-y-2">
@@ -291,6 +334,34 @@ function ManualOrderForm({ formData, setFormData, handleSubmit, createCommande, 
                 />
               </div>
             </div>
+
+            {/* Date de migration (seulement pour migration/ouverture) */}
+            {formData.type_commande === CommandeTypes.MIGRATION_OUVERTURE && (
+              <div className="space-y-2">
+                <Label htmlFor="date_migration">Date de migration *</Label>
+                <Input
+                  id="date_migration"
+                  type="date"
+                  value={formData.date_migration}
+                  onChange={e =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      date_migration: e.target.value,
+                    }))
+                  }
+                  required={formData.type_commande === CommandeTypes.MIGRATION_OUVERTURE}
+                />
+                {formData.date_migration && (
+                  <p className="text-sm text-gray-600">
+                    Date d'expédition prévisionnelle: {' '}
+                    <span className="font-semibold">
+                      {new Date(calculateDateExpeditionPrevisionnelle(formData.date_migration)).toLocaleDateString('fr-FR')}
+                    </span>
+                    {' '}(2 semaines avant la migration)
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
