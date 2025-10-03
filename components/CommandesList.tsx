@@ -20,23 +20,38 @@ import {
 import { useCommandes } from '@/hooks/useCommandes';
 import { calculateProgression } from '@/lib/progressionUtils';
 import { Edit2, Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ClientName from './ClientName';
 import CommandeStatusBadge from './CommandeStatusBadge';
 import CommandeStatusSelect from './CommandeStatusSelect';
 
 export default function CommandesList() {
-  const [page, setPage] = useState(1);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Initialiser les states depuis les URL params
+  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const pageSize = 10;
   const [selectedCommandeId, setSelectedCommandeId] = useState<string | null>(
     null,
   );
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all'); // 'all', 'normale', 'migration_ouverture'
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
+  const [typeFilter, setTypeFilter] = useState(searchParams.get('type') || 'all');
   const { data: commandes, isLoading, error } = useCommandes();
-  const router = useRouter();
+
+  // Mettre à jour l'URL quand les filtres changent
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (statusFilter) params.set('status', statusFilter);
+    if (typeFilter !== 'all') params.set('type', typeFilter);
+    if (page > 1) params.set('page', page.toString());
+
+    const newUrl = params.toString() ? `/commandes?${params.toString()}` : '/commandes';
+    router.replace(newUrl, { scroll: false });
+  }, [search, statusFilter, typeFilter, page, router]);
 
   // Réinitialiser la page à 1 quand les filtres changent
   useEffect(() => {
