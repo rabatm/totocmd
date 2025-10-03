@@ -79,11 +79,15 @@ export default function CommandesList() {
     filteredCommandes = filteredCommandes;
   }
 
-  // Filtre par recherche sur le numéro de commande
+  // Filtre par recherche sur le numéro de commande et le nom du client
   if (search.trim()) {
-    filteredCommandes = filteredCommandes.filter(c =>
-      c.numero_commande.toLowerCase().includes(search.trim().toLowerCase()),
-    );
+    const searchLower = search.trim().toLowerCase();
+    filteredCommandes = filteredCommandes.filter(c => {
+      const numeroMatch = c.numero_commande.toLowerCase().includes(searchLower);
+      const clientName = (c.clients as any)?.name || '';
+      const clientMatch = clientName.toLowerCase().includes(searchLower);
+      return numeroMatch || clientMatch;
+    });
   }
 
   // Compteurs pour les badges (on exclut les expédiées du comptage par défaut)
@@ -158,7 +162,7 @@ export default function CommandesList() {
             </Button>
             <input
               type="text"
-              placeholder="Rechercher par n° commande..."
+              placeholder="Rechercher par n° commande ou nom client..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="border-2 border-blue-200 rounded-lg px-3 py-2 text-sm focus:border-blue-400 focus:outline-none shadow"
