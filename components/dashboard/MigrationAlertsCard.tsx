@@ -3,8 +3,10 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCommandes } from '@/hooks/useCommandes';
-import { AlertTriangle, CheckCircle, Clock, Loader2, RefreshCw } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, Loader2, RefreshCw, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { calculateProgression } from '@/lib/progressionUtils';
+import CommandeStatusBadge from '@/components/CommandeStatusBadge';
 
 export default function MigrationAlertsCard() {
   const { data: commandes, isLoading } = useCommandes();
@@ -105,27 +107,48 @@ export default function MigrationAlertsCard() {
         {lateCommandes.length > 0 ? (
           <Alert variant="destructive" className="border-2 border-red-300 shadow-lg">
             <AlertTriangle className="h-5 w-5" />
-            <AlertTitle className="text-lg font-bold">
-              🚨 {lateCommandes.length} Migration{lateCommandes.length > 1 ? 's' : ''} en retard
+            <AlertTitle className="text-lg font-bold flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              {lateCommandes.length} Migration{lateCommandes.length > 1 ? 's' : ''} en retard
             </AlertTitle>
             <AlertDescription>
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 space-y-3">
                 {lateCommandes.slice(0, 5).map(commande => {
                   const daysLate = Math.floor(
                     (today.getTime() - new Date(commande.date_expedition_previsionnelle!).getTime()) /
                       (1000 * 60 * 60 * 24)
                   );
+                  const progression = calculateProgression(commande.commande_produits);
                   return (
                     <Link
                       key={commande.id}
                       href={`/commandes/${commande.id}`}
-                      className="block p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-colors border border-red-200"
+                      className="block p-4 bg-white/50 rounded-lg hover:bg-white/80 transition-colors border border-red-200"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-red-900">{commande.numero_commande}</span>
-                        <span className="px-2 py-1 bg-red-600 text-white rounded-full text-xs font-bold">
-                          -{daysLate} jour{daysLate > 1 ? 's' : ''}
-                        </span>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-red-900">{commande.numero_commande}</span>
+                          <span className="px-2 py-1 bg-red-600 text-white rounded-full text-xs font-bold flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            -{daysLate} jour{daysLate > 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CommandeStatusBadge status={commande.etat} />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="h-2 rounded-full bg-gradient-to-r from-red-500 to-red-600"
+                                  style={{ width: `${progression}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-xs font-semibold text-red-900 min-w-[3rem] text-right">
+                                {progression}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </Link>
                   );
@@ -147,28 +170,49 @@ export default function MigrationAlertsCard() {
         {urgentCommandes.length > 0 ? (
           <Alert className="border-2 border-orange-300 bg-orange-50 shadow-lg">
             <Clock className="h-5 w-5 text-orange-600" />
-            <AlertTitle className="text-orange-900 text-lg font-bold">
-              ⏰ {urgentCommandes.length} Migration{urgentCommandes.length > 1 ? 's' : ''} urgente
+            <AlertTitle className="text-orange-900 text-lg font-bold flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              {urgentCommandes.length} Migration{urgentCommandes.length > 1 ? 's' : ''} urgente
               {urgentCommandes.length > 1 ? 's' : ''}
             </AlertTitle>
             <AlertDescription className="text-orange-800">
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 space-y-3">
                 {urgentCommandes.slice(0, 3).map(commande => {
                   const daysUntil = Math.ceil(
                     (new Date(commande.date_expedition_previsionnelle!).getTime() - today.getTime()) /
                       (1000 * 60 * 60 * 24)
                   );
+                  const progression = calculateProgression(commande.commande_produits);
                   return (
                     <Link
                       key={commande.id}
                       href={`/commandes/${commande.id}`}
-                      className="block p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-colors border border-orange-200"
+                      className="block p-4 bg-white/50 rounded-lg hover:bg-white/80 transition-colors border border-orange-200"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-orange-900">{commande.numero_commande}</span>
-                        <span className="px-2 py-1 bg-orange-600 text-white rounded-full text-xs font-bold">
-                          {daysUntil} jour{daysUntil > 1 ? 's' : ''}
-                        </span>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-orange-900">{commande.numero_commande}</span>
+                          <span className="px-2 py-1 bg-orange-600 text-white rounded-full text-xs font-bold flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {daysUntil} jour{daysUntil > 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CommandeStatusBadge status={commande.etat} />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="h-2 rounded-full bg-gradient-to-r from-orange-500 to-orange-600"
+                                  style={{ width: `${progression}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-xs font-semibold text-orange-900 min-w-[3rem] text-right">
+                                {progression}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </Link>
                   );
@@ -190,7 +234,10 @@ export default function MigrationAlertsCard() {
         {lateCommandes.length === 0 && urgentCommandes.length === 0 && (
           <div className="text-center py-12 bg-white/30 rounded-xl border-2 border-green-200">
             <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-600" />
-            <p className="text-xl font-bold text-green-800 mb-2">✅ Tout va bien !</p>
+            <p className="text-xl font-bold text-green-800 mb-2 flex items-center justify-center gap-2">
+              <CheckCircle className="h-6 w-6" />
+              Tout va bien !
+            </p>
             <p className="text-green-700">Aucune migration en retard</p>
             <p className="text-green-600 text-sm mt-2">
               {migrationCommandes.length} migration{migrationCommandes.length > 1 ? 's' : ''} en cours
@@ -202,9 +249,10 @@ export default function MigrationAlertsCard() {
         {migrationCommandes.length > 0 && (hasAlerts || true) && (
           <Link
             href="/commandes?type=migration_ouverture"
-            className="block text-center py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg"
+            className="flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg"
           >
-            📋 Voir toutes les migrations ({migrationCommandes.length})
+            <FileText className="h-5 w-5" />
+            Voir toutes les migrations ({migrationCommandes.length})
           </Link>
         )}
       </CardContent>
