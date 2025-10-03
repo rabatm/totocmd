@@ -53,6 +53,8 @@ export default function SettingsPage() {
   const integrationSettings = settings.filter(s => s.category === 'integrations');
   const generalSettings = settings.filter(s => s.category === 'general');
 
+  console.log('Settings data:', { settings, integrationSettings, generalSettings });
+
   if (isLoading) {
     return (
       <ProtectedRoute>
@@ -87,8 +89,28 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* Message si pas de paramètres */}
+        {settings.length === 0 && (
+          <Card className="border-orange-200 bg-orange-50">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <Key className="h-6 w-6 text-orange-600" />
+                <div>
+                  <h3 className="font-semibold text-orange-900">Table app_settings non trouvée</h3>
+                  <p className="text-sm text-orange-700 mt-1">
+                    Vous devez d'abord exécuter la migration SQL. Ouvrez le fichier{' '}
+                    <code className="bg-orange-100 px-2 py-0.5 rounded">migrations/create_app_settings.sql</code>{' '}
+                    dans votre dashboard Supabase (SQL Editor) et exécutez-le.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="space-y-6">
           {/* Intégrations */}
+          {integrationSettings.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -142,8 +164,10 @@ export default function SettingsPage() {
               ))}
             </CardContent>
           </Card>
+          )}
 
           {/* Paramètres généraux */}
+          {generalSettings.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -196,6 +220,7 @@ export default function SettingsPage() {
               ))}
             </CardContent>
           </Card>
+          )}
         </div>
       </div>
     </ProtectedRoute>
