@@ -251,3 +251,199 @@ export const MouvementStockTypes = {
   INVENTAIRE: 'inventaire' as const,
   RECEPTION: 'reception' as const,
 };
+
+// Types pour la gestion des expéditions multi-colis
+export type ShipmentStatus = 'brouillon' | 'En préparation' | 'preparee' | 'verifiee' | 'expediee' | 'En transit' | 'livree';
+export type ColisStatus = 'prepare' | 'expedie' | 'en_transit' | 'livre';
+
+export interface Shipment {
+  id: number;
+  client: string;
+  fa_bl_number: string;
+  date_envoi: string;
+  verificateur: string;  // Backward compatibility
+  preparateur: string;   // Backward compatibility
+  suivi_chronopost: string;
+  observations?: string;
+  statut: ShipmentStatus;
+  created_at?: string;
+  updated_at?: string;
+
+  // Nouvelles colonnes étendues
+  commande_id?: string;
+  numero_facture?: string;
+  total_ht: number;
+  total_ttc: number;
+  total_tva: number;
+  date_preparation?: string;
+  date_verification?: string;
+  transporteur?: string;
+  nombre_colis: number;
+
+  // Nouvelles références personnel
+  preparateur_id?: string;
+  verificateur_id?: string;
+
+  // Relations
+  colis?: ShipmentColis[];
+  preparateur_info?: Personnel;  // Relation avec table personnel
+  verificateur_info?: Personnel; // Relation avec table personnel
+}
+
+// Interface pour les colis d'expédition
+export interface ShipmentColis {
+  id: string;
+  shipment_id: number;
+  numero_colis: number;
+  numero_suivi_chronopost?: string;
+  poids_grammes?: number;
+  dimensions_cm?: string;
+  statut_colis: ColisStatus;
+  date_expedition?: string;
+  date_livraison?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ShipmentProduit {
+  id: string;
+  shipment_id: number;
+  commande_produit_id: string;
+  quantite_expediee: number;
+  prix_unitaire_ht: number;
+  prix_unitaire_ttc: number;
+  numero_colis: number;  // Référence au colis contenant ce produit
+  created_at?: string;
+  updated_at?: string;
+
+  // Relations
+  commande_produit?: CommandeProduit;
+}
+
+// Interface pour la création d'expédition multi-colis
+export interface CreateShipmentInput {
+  commande_id: string;
+  client: string;
+  numero_facture: string;
+  preparateur_id: string;     // ID du personnel sélectionné
+  verificateur_id?: string;   // ID du personnel sélectionné (optionnel)
+  transporteur?: string;
+  nombre_colis: number;
+  colis: {
+    numero_colis: number;
+    poids_grammes?: number;
+    dimensions_cm?: string;
+    produits: {
+      commande_produit_id: string;
+      quantite_expediee: number;
+      prix_unitaire_ht: number;
+      prix_unitaire_ttc: number;
+    }[];
+  }[];
+}
+
+// Interface pour l'assignation de personnel
+export interface PersonnelAssignment {
+  preparateur_id?: string;
+  verificateur_id?: string;
+  date_assignation?: string;
+}
+
+// Interface pour la mise à jour d'un colis
+export interface UpdateColisInput {
+  numero_suivi_chronopost?: string;
+  poids_grammes?: number;
+  dimensions_cm?: string;
+  statut_colis?: ColisStatus;
+}
+
+// Interface pour les détails d'expédition avec relations
+export interface ShipmentWithDetails extends Shipment {
+  commande?: Commande;
+  shipment_produits?: ShipmentProduit[];
+  colis?: ShipmentColis[];
+  preparateur_info?: Personnel;
+  verificateur_info?: Personnel;
+}
+
+// Interface pour la mise à jour du statut d'expédition
+export interface UpdateShipmentStatusInput {
+  statut: ShipmentStatus;
+  date_preparation?: string;
+  date_verification?: string;
+  observations?: string;
+}
+
+// Constantes pour les statuts d'expédition
+export const ShipmentStatusLabels = {
+  brouillon: 'Brouillon',
+  'En préparation': 'En préparation',
+  preparee: 'Préparée',
+  verifiee: 'Vérifiée',
+  expediee: 'Expédiée',
+  'En transit': 'En transit',
+  livree: 'Livrée',
+} as const;
+
+export const ShipmentStatusColors = {
+  brouillon: 'gray',
+  'En préparation': 'blue',
+  preparee: 'orange',
+  verifiee: 'purple',
+  expediee: 'green',
+  'En transit': 'indigo',
+  livree: 'emerald',
+} as const;
+
+// Constantes pour les statuts de colis
+export const ColisStatusLabels = {
+  prepare: 'Préparé',
+  expedie: 'Expédié',
+  en_transit: 'En transit',
+  livre: 'Livré',
+} as const;
+
+export const ColisStatusColors = {
+  prepare: 'orange',
+  expedie: 'blue',
+  en_transit: 'indigo',
+  livre: 'green',
+} as const;
+
+// Types pour la gestion des paramètres de l'application
+export type SettingCategory = 'general' | 'integrations';
+
+export interface AppSetting {
+  id: string;
+  key: string;
+  value: string | null;
+  description: string | null;
+  is_encrypted: boolean;
+  category: SettingCategory;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpdateSettingInput {
+  key: string;
+  value: string;
+}
+
+export interface CreateSettingInput {
+  key: string;
+  value?: string;
+  description?: string;
+  is_encrypted?: boolean;
+  category?: SettingCategory;
+}
+
+// Clés de paramètres prédéfinies
+export const SettingKeys = {
+  EXTRABAT_API_KEY: 'EXTRABAT_API_KEY',
+  EXTRABAT_API_URL: 'EXTRABAT_API_URL',
+  CHRONOPOST_API_KEY: 'CHRONOPOST_API_KEY',
+  SHOP_NAME: 'SHOP_NAME',
+  SHOP_ADDRESS: 'SHOP_ADDRESS',
+  SHOP_PHONE: 'SHOP_PHONE',
+  SHOP_EMAIL: 'SHOP_EMAIL',
+} as const;

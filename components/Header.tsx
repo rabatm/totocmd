@@ -27,6 +27,7 @@ import {
   User,
   Users,
   Warehouse,
+  Truck,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -125,6 +126,18 @@ export default function Header() {
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <Link
+                    href="/shipments"
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                  >
+                    <Truck className="mr-2 h-4 w-4" />
+                    Expéditions
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link
                     href="/clients"
                     className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                   >
@@ -183,9 +196,22 @@ export default function Header() {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
+                        <Link href="/shipments" className="flex items-center">
+                          <Truck className="mr-2 h-4 w-4" />
+                          Expéditions
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
                         <Link href="/clients" className="flex items-center">
                           <Users className="mr-2 h-4 w-4" />
                           Clients
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/settings" className="flex items-center">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Paramètres
                         </Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
