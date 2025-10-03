@@ -19,7 +19,16 @@ import {
 } from '@/components/ui/table';
 import { useCommandes } from '@/hooks/useCommandes';
 import { calculateProgression } from '@/lib/progressionUtils';
-import { Edit2, Loader2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  Check,
+  Clock,
+  Edit2,
+  Loader2,
+  Package,
+  RefreshCw,
+  Search
+} from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ClientName from './ClientName';
@@ -151,23 +160,23 @@ export default function CommandesList() {
             </button>
             <button
               onClick={() => setTypeFilter('normale')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1 ${
                 typeFilter === 'normale'
                   ? 'bg-blue-600 text-white'
                   : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
               }`}
             >
-              📦 ({normalesCount})
+              <Package className="h-4 w-4" /> ({normalesCount})
             </button>
             <button
               onClick={() => setTypeFilter('migration_ouverture')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1 ${
                 typeFilter === 'migration_ouverture'
                   ? 'bg-orange-600 text-white'
                   : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
               }`}
             >
-              🔄 ({migrationsCount})
+              <RefreshCw className="h-4 w-4" /> ({migrationsCount})
             </button>
           </div>
 
@@ -184,13 +193,16 @@ export default function CommandesList() {
             >
               + Ajouter
             </Button>
-            <input
-              type="text"
-              placeholder="🔍 Rechercher..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="border-2 border-blue-200 rounded-lg px-3 py-1.5 text-sm focus:border-blue-400 focus:outline-none shadow w-48"
-            />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="border-2 border-blue-200 rounded-lg pl-9 pr-3 py-1.5 text-sm focus:border-blue-400 focus:outline-none shadow w-48"
+              />
+            </div>
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
@@ -241,8 +253,8 @@ export default function CommandesList() {
                   <div className="flex items-center gap-2">
                     <span>{commande.numero_commande.toUpperCase()}</span>
                     {commande.type_commande === 'migration_ouverture' && (
-                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium">
-                        🔄 Migration
+                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium flex items-center gap-1">
+                        <RefreshCw className="h-3 w-3" /> Migration
                       </span>
                     )}
                   </div>
@@ -310,17 +322,19 @@ export default function CommandesList() {
                       return (
                         <div className="space-y-1">
                           {/* Date de migration */}
-                          <div className="flex items-center text-xs">
-                            <span className="text-orange-700 font-medium">🔄 Migration:</span>
-                            <span className="ml-1 text-gray-700">
+                          <div className="flex items-center text-xs gap-1">
+                            <RefreshCw className="h-3 w-3 text-orange-700" />
+                            <span className="text-orange-700 font-medium">Migration:</span>
+                            <span className="text-gray-700">
                               {dateMigration ? formatDate(commande.date_migration) : '-'}
                             </span>
                           </div>
 
                           {/* Date d'expédition avec warning */}
-                          <div className="flex items-center text-xs">
-                            <span className="text-orange-700 font-medium">📦 Expédition:</span>
-                            <span className={`ml-1 ${
+                          <div className="flex items-center text-xs gap-1">
+                            <Package className="h-3 w-3 text-orange-700" />
+                            <span className="text-orange-700 font-medium">Expédition:</span>
+                            <span className={`${
                               isLate ? 'text-red-700 font-bold' :
                               isUrgent ? 'text-orange-700 font-bold' :
                               'text-gray-700'
@@ -328,14 +342,10 @@ export default function CommandesList() {
                               {dateExpedition ? formatDate(commande.date_expedition_previsionnelle) : '-'}
                             </span>
                             {isLate && (
-                              <span className="ml-1 text-red-600 font-bold" title="En retard !">
-                                ⚠️
-                              </span>
+                              <AlertTriangle className="h-3 w-3 text-red-600" title="En retard !" />
                             )}
                             {isUrgent && !isLate && (
-                              <span className="ml-1 text-orange-600" title="Urgent - moins de 7 jours">
-                                ⏰
-                              </span>
+                              <Clock className="h-3 w-3 text-orange-600" title="Urgent - moins de 7 jours" />
                             )}
                           </div>
                         </div>
@@ -345,9 +355,10 @@ export default function CommandesList() {
                     // Pour les commandes normales, afficher la date limite d'expédition si elle existe
                     if (commande.date_limite_expedition) {
                       return (
-                        <div className="text-xs text-gray-700">
-                          <span className="font-medium">📦 Limite:</span>
-                          <span className="ml-1">{formatDate(commande.date_limite_expedition)}</span>
+                        <div className="text-xs text-gray-700 flex items-center gap-1">
+                          <Package className="h-3 w-3" />
+                          <span className="font-medium">Limite:</span>
+                          <span>{formatDate(commande.date_limite_expedition)}</span>
                         </div>
                       );
                     }
@@ -377,7 +388,9 @@ export default function CommandesList() {
                             }}
                           >
                             {calculatedProgression === 100 && (
-                              <span className="text-xs text-white font-bold flex items-center justify-end pr-1 h-full">✓</span>
+                              <span className="flex items-center justify-end pr-1 h-full">
+                                <Check className="h-3 w-3 text-white font-bold" />
+                              </span>
                             )}
                           </div>
                         </div>
