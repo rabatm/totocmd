@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import {
+  AlertTriangle,
   BarChart3,
   Euro,
   Loader2,
