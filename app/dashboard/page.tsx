@@ -8,6 +8,7 @@ import TopClientsCard from '@/components/TopClientsCard';
 import ShipmentsStatsCard from '@/components/dashboard/ShipmentsStatsCard';
 import ShipmentsAlertsCard from '@/components/dashboard/ShipmentsAlertsCard';
 import MigrationAlertsCard from '@/components/dashboard/MigrationAlertsCard';
+import CommandesAlertsCard from '@/components/dashboard/CommandesAlertsCard';
 import SyncExtrabatClientsButton from '@/components/SyncExtrabatClientsButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -100,6 +101,9 @@ export default function DashboardPage() {
                 <AlertTriangle className="h-5 w-5 text-orange-600" />
                 Alertes et notifications
               </h2>
+
+              {/* Alertes commandes normales */}
+              <CommandesAlertsCard />
 
               {/* Alertes migrations */}
               <MigrationAlertsCard />
