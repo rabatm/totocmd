@@ -21,7 +21,7 @@ import { useCommandes } from '@/hooks/useCommandes';
 import { calculateProgression } from '@/lib/progressionUtils';
 import { Edit2, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ClientName from './ClientName';
 import CommandeStatusBadge from './CommandeStatusBadge';
 import CommandeStatusSelect from './CommandeStatusSelect';
@@ -37,6 +37,11 @@ export default function CommandesList() {
   const [typeFilter, setTypeFilter] = useState('all'); // 'all', 'normale', 'migration_ouverture'
   const { data: commandes, isLoading, error } = useCommandes();
   const router = useRouter();
+
+  // Réinitialiser la page à 1 quand les filtres changent
+  useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter, typeFilter]);
 
   if (isLoading) {
     return (
