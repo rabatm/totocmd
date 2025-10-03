@@ -12,6 +12,7 @@ import ProduitActions from '@/components/ProduitActions';
 import ProduitStatusSelect from '@/components/ProduitStatusSelect';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ShopConfigDialog from '@/components/ShopConfigDialog';
+import CommandeShipments from '@/components/shipments/CommandeShipments';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -23,9 +24,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useCommande } from '@/hooks/useCommandes';
+import { useSplitProduits } from '@/hooks/useProduitMutations';
 import { CommandeProduit } from '@/src/types';
-import { ArrowLeft, Calendar } from 'lucide-react';
+import { ArrowLeft, Calendar, Split } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { use, useState } from 'react';
 import SelectedBulkStatusButton from '@/components/SelectedBulkStatusButton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -39,7 +42,9 @@ export default function CommandeDetailPage({
   params,
 }: CommandeDetailPageProps) {
   const { id } = use(params);
+  const router = useRouter();
   const { data: commande, isLoading } = useCommande(id);
+  const splitProduits = useSplitProduits();
   const [editingProduit, setEditingProduit] = useState<CommandeProduit | null>(
     null,
   );
@@ -99,6 +104,20 @@ export default function CommandeDetailPage({
     ? selectedProducts.length === commande.commande_produits.length && commande.commande_produits.length > 0
     : false;
 
+  // Fonction pour diviser les produits avec quantité > 1
+  const handleSplitProduits = async () => {
+    if (!commande) return;
+
+    try {
+      await splitProduits.mutateAsync({ commandeId: commande.id });
+    } catch (error) {
+      console.error('Erreur lors de la division des produits:', error);
+    }
+  };
+
+  // Vérifier s'il y a des produits avec quantité > 1
+  const hasMultiQuantityProducts = commande?.commande_produits?.some(p => p.quantite > 1) || false;
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-6">
@@ -127,12 +146,10 @@ export default function CommandeDetailPage({
           <p className="text-gray-600 mb-6">
             La commande demandée n&apos;existe pas ou a été supprimée.
           </p>
-          <Link href="/commandes">
-            <Button>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour aux commandes
-            </Button>
-          </Link>
+          <Button onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour aux commandes
+          </Button>
         </div>
       </div>
     );
@@ -151,12 +168,10 @@ export default function CommandeDetailPage({
       <div className="container mx-auto p-6">
       <div className="mb-4">
         <div className="flex items-center justify-between">
-          <Link href="/commandes">
-            <Button variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour aux commandes
-            </Button>
-          </Link>
+          <Button variant="outline" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour aux commandes
+          </Button>
           <div className="flex items-center gap-2">
             <ShopConfigDialog />
             {commande && <PrintLabel commande={commande} />}
@@ -366,6 +381,18 @@ export default function CommandeDetailPage({
                   Produits ({commande?.commande_produits?.length || 0})
                 </CardTitle>
                 <div className="flex items-center gap-2">
+                  {hasMultiQuantityProducts && (
+                    <Button
+                      onClick={handleSplitProduits}
+                      disabled={splitProduits.isPending}
+                      variant="outline"
+                      size="sm"
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                    >
+                      <Split className="h-4 w-4 mr-2" />
+                      {splitProduits.isPending ? 'Division...' : 'Diviser les quantités'}
+                    </Button>
+                  )}
                   {commande && commande.commande_produits && commande.commande_produits.length > 0 && (
                     <>
                       <BulkStatusButton
@@ -408,6 +435,7 @@ export default function CommandeDetailPage({
                       selectedProducts.includes(p.id)
                     ) || []}
                     onClearSelection={clearSelection}
+                    commande={commande}
                   />
                 </div>
               )}
@@ -452,7 +480,11 @@ export default function CommandeDetailPage({
                           </TableCell>
                           <TableCell>{produit.code_produit || '-'}</TableCell>
                           <TableCell>{produit.numero_serie || '-'}</TableCell>
-                          <TableCell>{produit.quantite}</TableCell>
+                          <TableCell>
+                            <span className={produit.quantite > 1 ? 'font-bold text-orange-600' : ''}>
+                              {produit.quantite}
+                            </span>
+                          </TableCell>
                           <TableCell>
                             <ProduitStatusSelect
                               produitId={produit.id}
@@ -484,6 +516,10 @@ export default function CommandeDetailPage({
               )}
             </CardContent>
           </Card>
+
+          {/* Section Expéditions */}
+          {commande && <CommandeShipments commande={commande} />}
+
           {/* Dialog d'édition de produit */}
           {editingProduit && commande && (
             <EditProduitDialog
