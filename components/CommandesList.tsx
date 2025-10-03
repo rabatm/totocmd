@@ -162,10 +162,10 @@ export default function CommandesList() {
             </Button>
             <input
               type="text"
-              placeholder="Rechercher par n° commande ou nom client..."
+              placeholder="🔍 Rechercher..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="border-2 border-blue-200 rounded-lg px-3 py-2 text-sm focus:border-blue-400 focus:outline-none shadow"
+              className="border-2 border-blue-200 rounded-lg px-3 py-2 text-sm focus:border-blue-400 focus:outline-none shadow min-w-[200px] flex-1 max-w-[300px]"
             />
             <select
               value={statusFilter}
