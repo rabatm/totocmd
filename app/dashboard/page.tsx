@@ -5,6 +5,10 @@ import RecentOrdersCard from '@/components/RecentOrdersCard';
 import StatCard from '@/components/StatCard';
 import StatusDistributionCard from '@/components/StatusDistributionCard';
 import TopClientsCard from '@/components/TopClientsCard';
+import ShipmentsStatsCard from '@/components/dashboard/ShipmentsStatsCard';
+import ShipmentsAlertsCard from '@/components/dashboard/ShipmentsAlertsCard';
+import MigrationAlertsCard from '@/components/dashboard/MigrationAlertsCard';
+import SyncExtrabatClientsButton from '@/components/SyncExtrabatClientsButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -65,6 +69,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <SyncExtrabatClientsButton />
               <Button onClick={() => refetch()} variant="outline" size="sm">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Actualiser
@@ -174,6 +179,20 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Expéditions et alertes */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Statistiques expéditions */}
+              <ShipmentsStatsCard />
+
+              {/* Alertes expéditions */}
+              <ShipmentsAlertsCard />
+            </div>
+
+            {/* Alertes migrations */}
+            <div className="grid grid-cols-1 gap-6">
+              <MigrationAlertsCard />
+            </div>
+
             {/* Seconde ligne de graphiques */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Distribution des produits */}
@@ -221,6 +240,12 @@ export default function DashboardPage() {
                       <Button variant="outline" className="w-full justify-start">
                         <Package className="h-4 w-4 mr-2" />
                         Gérer les produits
+                      </Button>
+                    </Link>
+                    <Link href="/shipments" className="block">
+                      <Button variant="outline" className="w-full justify-start">
+                        <TrendingUp className="h-4 w-4 mr-2" />
+                        Gérer les expéditions
                       </Button>
                     </Link>
                   </div>
