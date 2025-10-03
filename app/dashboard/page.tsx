@@ -93,6 +93,9 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="space-y-8">
+            {/* Alertes migrations - EN HAUT */}
+            <MigrationAlertsCard />
+
             {/* Métriques principales */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard
@@ -186,11 +189,6 @@ export default function DashboardPage() {
 
               {/* Alertes expéditions */}
               <ShipmentsAlertsCard />
-            </div>
-
-            {/* Alertes migrations */}
-            <div className="grid grid-cols-1 gap-6">
-              <MigrationAlertsCard />
             </div>
 
             {/* Seconde ligne de graphiques */}
