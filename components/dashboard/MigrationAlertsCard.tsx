@@ -102,18 +102,19 @@ export default function MigrationAlertsCard() {
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Commandes en retard */}
-        {lateCommandes.length > 0 ? (
-          <Alert variant="destructive" className="border-2 border-red-300 shadow-lg">
+      <CardContent>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Commandes en retard */}
+          {lateCommandes.length > 0 ? (
+            <Alert variant="destructive" className="border-2 border-red-300 shadow-lg">
             <AlertTriangle className="h-5 w-5" />
-            <AlertTitle className="text-lg font-bold flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              {lateCommandes.length} Migration{lateCommandes.length > 1 ? 's' : ''} en retard
+            <AlertTitle className="text-base font-bold flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              {lateCommandes.length} en retard
             </AlertTitle>
             <AlertDescription>
-              <div className="mt-3 space-y-3">
-                {lateCommandes.slice(0, 5).map(commande => {
+              <div className="mt-2 space-y-2">
+                {lateCommandes.slice(0, 3).map(commande => {
                   const daysLate = Math.floor(
                     (today.getTime() - new Date(commande.date_expedition_previsionnelle!).getTime()) /
                       (1000 * 60 * 60 * 24)
@@ -123,27 +124,27 @@ export default function MigrationAlertsCard() {
                     <Link
                       key={commande.id}
                       href={`/commandes/${commande.id}`}
-                      className="block p-4 bg-white/50 rounded-lg hover:bg-white/80 transition-colors border border-red-200"
+                      className="block p-2 bg-white/50 rounded-md hover:bg-white/80 transition-colors border border-red-200"
                     >
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-red-900">{commande.numero_commande}</span>
-                          <span className="px-2 py-1 bg-red-600 text-white rounded-full text-xs font-bold flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            -{daysLate} jour{daysLate > 1 ? 's' : ''}
+                          <span className="font-semibold text-sm text-red-900">{commande.numero_commande}</span>
+                          <span className="px-1.5 py-0.5 bg-red-600 text-white rounded-full text-xs font-bold flex items-center gap-1">
+                            <Clock className="h-2.5 w-2.5" />
+                            -{daysLate}j
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                           <CommandeStatusBadge status={commande.etat} />
                           <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                            <div className="flex items-center gap-1.5">
+                              <div className="flex-1 bg-gray-200 rounded-full h-1.5">
                                 <div
-                                  className="h-2 rounded-full bg-gradient-to-r from-red-500 to-red-600"
+                                  className="h-1.5 rounded-full bg-gradient-to-r from-red-500 to-red-600"
                                   style={{ width: `${progression}%` }}
                                 ></div>
                               </div>
-                              <span className="text-xs font-semibold text-red-900 min-w-[3rem] text-right">
+                              <span className="text-xs font-semibold text-red-900 min-w-[2.5rem] text-right">
                                 {progression}%
                               </span>
                             </div>
@@ -153,12 +154,12 @@ export default function MigrationAlertsCard() {
                     </Link>
                   );
                 })}
-                {lateCommandes.length > 5 && (
+                {lateCommandes.length > 3 && (
                   <Link
                     href="/commandes?type=migration_ouverture&status=en_cours"
-                    className="block text-center text-sm text-red-700 hover:text-red-900 font-semibold hover:underline pt-2"
+                    className="block text-center text-xs text-red-700 hover:text-red-900 font-semibold hover:underline pt-1"
                   >
-                    + Voir {lateCommandes.length - 5} autre{lateCommandes.length - 5 > 1 ? 's' : ''} migration{lateCommandes.length - 5 > 1 ? 's' : ''} →
+                    + {lateCommandes.length - 3} autre{lateCommandes.length - 3 > 1 ? 's' : ''}
                   </Link>
                 )}
               </div>
@@ -166,92 +167,92 @@ export default function MigrationAlertsCard() {
           </Alert>
         ) : null}
 
-        {/* Commandes urgentes */}
-        {urgentCommandes.length > 0 ? (
-          <Alert className="border-2 border-orange-300 bg-orange-50 shadow-lg">
-            <Clock className="h-5 w-5 text-orange-600" />
-            <AlertTitle className="text-orange-900 text-lg font-bold flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              {urgentCommandes.length} Migration{urgentCommandes.length > 1 ? 's' : ''} urgente
-              {urgentCommandes.length > 1 ? 's' : ''}
-            </AlertTitle>
-            <AlertDescription className="text-orange-800">
-              <div className="mt-3 space-y-3">
-                {urgentCommandes.slice(0, 3).map(commande => {
-                  const daysUntil = Math.ceil(
-                    (new Date(commande.date_expedition_previsionnelle!).getTime() - today.getTime()) /
-                      (1000 * 60 * 60 * 24)
-                  );
-                  const progression = calculateProgression(commande.commande_produits);
-                  return (
+          {/* Commandes urgentes */}
+          {urgentCommandes.length > 0 ? (
+            <Alert className="border-2 border-orange-300 bg-orange-50 shadow-lg">
+              <Clock className="h-5 w-5 text-orange-600" />
+              <AlertTitle className="text-orange-900 text-base font-bold flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                {urgentCommandes.length} urgente{urgentCommandes.length > 1 ? 's' : ''}
+              </AlertTitle>
+              <AlertDescription className="text-orange-800">
+                <div className="mt-2 space-y-2">
+                  {urgentCommandes.slice(0, 3).map(commande => {
+                    const daysUntil = Math.ceil(
+                      (new Date(commande.date_expedition_previsionnelle!).getTime() - today.getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    );
+                    const progression = calculateProgression(commande.commande_produits);
+                    return (
+                      <Link
+                        key={commande.id}
+                        href={`/commandes/${commande.id}`}
+                        className="block p-2 bg-white/50 rounded-md hover:bg-white/80 transition-colors border border-orange-200"
+                      >
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-sm text-orange-900">{commande.numero_commande}</span>
+                            <span className="px-1.5 py-0.5 bg-orange-600 text-white rounded-full text-xs font-bold flex items-center gap-1">
+                              <Clock className="h-2.5 w-2.5" />
+                              {daysUntil}j
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <CommandeStatusBadge status={commande.etat} />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                                  <div
+                                    className="h-1.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600"
+                                    style={{ width: `${progression}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-xs font-semibold text-orange-900 min-w-[2.5rem] text-right">
+                                  {progression}%
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                  {urgentCommandes.length > 3 && (
                     <Link
-                      key={commande.id}
-                      href={`/commandes/${commande.id}`}
-                      className="block p-4 bg-white/50 rounded-lg hover:bg-white/80 transition-colors border border-orange-200"
+                      href="/commandes?type=migration_ouverture&status=en_cours"
+                      className="block text-center text-xs text-orange-700 hover:text-orange-900 font-semibold hover:underline pt-1"
                     >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-orange-900">{commande.numero_commande}</span>
-                          <span className="px-2 py-1 bg-orange-600 text-white rounded-full text-xs font-bold flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {daysUntil} jour{daysUntil > 1 ? 's' : ''}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <CommandeStatusBadge status={commande.etat} />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 bg-gray-200 rounded-full h-2">
-                                <div
-                                  className="h-2 rounded-full bg-gradient-to-r from-orange-500 to-orange-600"
-                                  style={{ width: `${progression}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-xs font-semibold text-orange-900 min-w-[3rem] text-right">
-                                {progression}%
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      + {urgentCommandes.length - 3} autre{urgentCommandes.length - 3 > 1 ? 's' : ''}
                     </Link>
-                  );
-                })}
-                {urgentCommandes.length > 3 && (
-                  <Link
-                    href="/commandes?type=migration_ouverture&status=en_cours"
-                    className="block text-center text-sm text-orange-700 hover:text-orange-900 font-semibold hover:underline pt-2"
-                  >
-                    + Voir {urgentCommandes.length - 3} autre{urgentCommandes.length - 3 > 1 ? 's' : ''} migration{urgentCommandes.length - 3 > 1 ? 's' : ''} →
-                  </Link>
-                )}
+                  )}
               </div>
             </AlertDescription>
           </Alert>
         ) : null}
 
-        {/* Aucune alerte */}
-        {lateCommandes.length === 0 && urgentCommandes.length === 0 && (
-          <div className="text-center py-12 bg-white/30 rounded-xl border-2 border-green-200">
-            <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-600" />
-            <p className="text-xl font-bold text-green-800 mb-2 flex items-center justify-center gap-2">
-              <CheckCircle className="h-6 w-6" />
-              Tout va bien !
-            </p>
-            <p className="text-green-700">Aucune migration en retard</p>
-            <p className="text-green-600 text-sm mt-2">
-              {migrationCommandes.length} migration{migrationCommandes.length > 1 ? 's' : ''} en cours
-            </p>
-          </div>
-        )}
+          {/* Aucune alerte - prend toute la largeur */}
+          {lateCommandes.length === 0 && urgentCommandes.length === 0 && (
+            <div className="col-span-full text-center py-8 bg-white/30 rounded-xl border-2 border-green-200">
+              <CheckCircle className="h-12 w-12 mx-auto mb-3 text-green-600" />
+              <p className="text-lg font-bold text-green-800 mb-1 flex items-center justify-center gap-2">
+                <CheckCircle className="h-5 w-5" />
+                Tout va bien !
+              </p>
+              <p className="text-green-700 text-sm">Aucune migration en retard</p>
+              <p className="text-green-600 text-xs mt-1">
+                {migrationCommandes.length} migration{migrationCommandes.length > 1 ? 's' : ''} en cours
+              </p>
+            </div>
+          )}
+        </div>
 
-        {/* Lien vers toutes les migrations */}
+        {/* Lien vers toutes les migrations - en dehors de la grille */}
         {migrationCommandes.length > 0 && (hasAlerts || true) && (
           <Link
             href="/commandes?type=migration_ouverture"
-            className="flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg"
+            className="flex items-center justify-center gap-2 py-2.5 px-4 mt-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg text-sm"
           >
-            <FileText className="h-5 w-5" />
+            <FileText className="h-4 w-4" />
             Voir toutes les migrations ({migrationCommandes.length})
           </Link>
         )}
