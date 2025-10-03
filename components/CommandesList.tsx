@@ -107,22 +107,21 @@ export default function CommandesList() {
 
   return (
     <Card className="shadow-xl bg-gradient-to-br from-blue-50 via-white to-orange-50 rounded-2xl border-0">
-      <CardHeader className="sticky top-0 z-10 bg-gradient-to-r from-blue-100 via-white to-orange-100 rounded-t-2xl shadow-md">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <CardTitle className="text-2xl font-extrabold text-blue-900">
-              Liste des commandes{' '}
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-base ml-2">
-                {filteredCommandes.length}
-              </span>
-            </CardTitle>
-          </div>
+      <CardHeader className="sticky top-0 z-10 bg-gradient-to-r from-blue-100 via-white to-orange-100 rounded-t-2xl shadow-md p-6">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Titre */}
+          <CardTitle className="text-xl font-extrabold text-blue-900 whitespace-nowrap">
+            Commandes{' '}
+            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+              {filteredCommandes.length}
+            </span>
+          </CardTitle>
 
-          {/* Boutons de filtres par type */}
-          <div className="flex gap-2 flex-wrap">
+          {/* Boutons de filtres par type - version compacte */}
+          <div className="flex gap-2">
             <button
               onClick={() => setTypeFilter('all')}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
                 typeFilter === 'all'
                   ? 'bg-gray-800 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -132,51 +131,54 @@ export default function CommandesList() {
             </button>
             <button
               onClick={() => setTypeFilter('normale')}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
                 typeFilter === 'normale'
                   ? 'bg-blue-600 text-white'
                   : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
               }`}
             >
-              📦 Commandes ({normalesCount})
+              📦 ({normalesCount})
             </button>
             <button
               onClick={() => setTypeFilter('migration_ouverture')}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
                 typeFilter === 'migration_ouverture'
                   ? 'bg-orange-600 text-white'
                   : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
               }`}
             >
-              🔄 Migration/Ouverture ({migrationsCount})
+              🔄 ({migrationsCount})
             </button>
           </div>
 
-          <div className="flex gap-2 items-center flex-wrap">
+          {/* Séparateur visuel */}
+          <div className="h-8 w-px bg-gray-300 hidden lg:block"></div>
+
+          {/* Actions */}
+          <div className="flex gap-2 items-center flex-1 min-w-fit">
             <Button
               variant="default"
-              className="font-semibold"
+              size="sm"
+              className="font-semibold whitespace-nowrap"
               onClick={() => router.push('/commandes/create')}
             >
-              + Ajouter une commande
+              + Ajouter
             </Button>
             <input
               type="text"
               placeholder="🔍 Rechercher..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="border-2 border-blue-200 rounded-lg px-3 py-2 text-sm focus:border-blue-400 focus:outline-none shadow min-w-[200px] flex-1 max-w-[300px]"
+              className="border-2 border-blue-200 rounded-lg px-3 py-1.5 text-sm focus:border-blue-400 focus:outline-none shadow w-48"
             />
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="border-2 border-orange-200 rounded-lg px-3 py-2 text-sm focus:border-orange-400 focus:outline-none shadow"
+              className="border-2 border-orange-200 rounded-lg px-3 py-1.5 text-sm focus:border-orange-400 focus:outline-none shadow"
             >
-              <option value="">TOUS LES STATUTS</option>
+              <option value="">TOUS STATUTS</option>
               <option value="en_attente">EN ATTENTE</option>
-              <option value="en_attente_dacompte">
-                EN ATTENTE D&apos;ACOMPTE
-              </option>
+              <option value="en_attente_dacompte">ATTENTE ACOMPTE</option>
               <option value="en_cours">EN COURS</option>
               <option value="pret_expedition">PRÊT EXPÉDITION</option>
               <option value="expedie">EXPÉDIÉE</option>
