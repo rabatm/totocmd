@@ -342,10 +342,14 @@ export default function CommandesList() {
                               {dateExpedition ? formatDate(commande.date_expedition_previsionnelle) : '-'}
                             </span>
                             {isLate && (
-                              <AlertTriangle className="h-3 w-3 text-red-600" title="En retard !" />
+                              <span title="En retard !">
+                              <AlertTriangle className="h-3 w-3 text-red-600" />
+                              </span>
                             )}
                             {isUrgent && !isLate && (
-                              <Clock className="h-3 w-3 text-orange-600" title="Urgent - moins de 7 jours" />
+                              <span title="Urgent - moins de 7 jours">
+                                <Clock className="h-3 w-3 text-orange-600" />
+                              </span>
                             )}
                           </div>
                         </div>

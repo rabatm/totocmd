@@ -207,3 +207,79 @@ export function useUpdateProduit() {
     },
   });
 }
+
+// Hook pour diviser les produits avec quantité > 1 en lignes individuelles
+export function useSplitProduits() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ commandeId }: { commandeId: string }) => {
+      // Récupérer tous les produits de la commande avec quantité > 1
+      const { data: produits, error: fetchError } = await supabase
+        .from('commande_produits')
+        .select('*')
+        .eq('commande_id', commandeId)
+        .gt('quantite', 1);
+
+      if (fetchError) {
+        throw new Error(`Erreur lors de la récupération: ${fetchError.message}`);
+      }
+
+      if (!produits || produits.length === 0) {
+        return { message: 'Aucun produit à diviser' };
+      }
+
+      const results = [];
+
+      for (const produit of produits) {
+        // Créer des lignes individuelles pour chaque unité
+        const individualLines = Array.from({ length: produit.quantite }, (_, index) => ({
+          commande_id: produit.commande_id,
+          personnel_id: produit.personnel_id,
+          nom_produit: produit.nom_produit,
+          code_produit: produit.code_produit,
+          numero_serie: null, // Sera saisi individuellement
+          quantite: 1,
+          statut: produit.statut,
+          date_scan: produit.date_scan,
+          remarque: produit.remarque ? `${produit.remarque} (Unité ${index + 1}/${produit.quantite})` : `Unité ${index + 1}/${produit.quantite}`,
+        }));
+
+        // Insérer les nouvelles lignes
+        const { data: newLines, error: insertError } = await supabase
+          .from('commande_produits')
+          .insert(individualLines)
+          .select();
+
+        if (insertError) {
+          throw new Error(`Erreur lors de l'insertion: ${insertError.message}`);
+        }
+
+        // Supprimer l'ancienne ligne groupée
+        const { error: deleteError } = await supabase
+          .from('commande_produits')
+          .delete()
+          .eq('id', produit.id);
+
+        if (deleteError) {
+          throw new Error(`Erreur lors de la suppression: ${deleteError.message}`);
+        }
+
+        results.push({
+          originalId: produit.id,
+          newLines: newLines,
+          originalQuantite: produit.quantite
+        });
+      }
+
+      return { results, totalSplit: results.length };
+    },
+    onSuccess: async (_, variables) => {
+      // Invalider le cache de la commande pour rafraîchir les données
+      queryClient.invalidateQueries({
+        queryKey: ['commande', variables.commandeId],
+      });
+      queryClient.invalidateQueries({ queryKey: ['commandes'] });
+    },
+  });
+}

@@ -272,7 +272,7 @@ export default function SuiviChronopost({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(colisItem.trackingUrl, '_blank')}
+                          onClick={() => window.open(colisItem.trackingUrl!, '_blank')}
                         >
                           <ExternalLink className="h-4 w-4 mr-1" />
                           Site Web
@@ -296,7 +296,7 @@ export default function SuiviChronopost({
                               </DialogDescription>
                             </DialogHeader>
                             <ChronopostTracker
-                              trackingNumber={colisItem.numero_suivi_chronopost}
+                              trackingNumber={colisItem.numero_suivi_chronopost || ''}
                               className="border-none shadow-none"
                             />
                           </DialogContent>

@@ -89,7 +89,7 @@ export async function PUT(
     }
 
     // Construire l'objet de mise à jour
-    const updateData: any = {
+    const updateData: Partial<import('@/src/types').ShipmentColis> & Record<string, unknown> = {
       updated_at: new Date().toISOString()
     }
 

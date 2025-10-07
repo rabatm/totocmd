@@ -42,7 +42,7 @@ interface ExtrabatClient {
   dateModif?: string;
 }
 
-interface SupabaseClient {
+interface SupabaseClientData {
   extrabat_id: string;
   name: string;
   email?: string | null;
@@ -54,7 +54,9 @@ interface SupabaseClient {
 }
 
 // Fonction pour récupérer un paramètre depuis la base de données ou l'environnement (fallback)
-async function getSettingValue(supabase: any, key: string): Promise<string> {
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+async function getSettingValue(supabase: SupabaseClient, key: string): Promise<string> {
   try {
     // Essayer de récupérer depuis app_settings
     const { data: setting, error } = await supabase
@@ -90,7 +92,7 @@ async function getEnvVar(key: string): Promise<string> {
 }
 
 // Normalisation des données client ExtraBat vers format Supabase
-function normalizeClientData(client: ExtrabatClient): SupabaseClient {
+function normalizeClientData(client: ExtrabatClient): SupabaseClientData {
   // Gérer les deux formats : ancien (cli_*) et nouveau (API v3)
   const extrabatId = String(client.id || client.cli_id || client.extrabat_id || '');
   const nom = client.nom || client.cli_nom || client.name || '';
@@ -133,7 +135,7 @@ function normalizeClientData(client: ExtrabatClient): SupabaseClient {
 }
 
 // Récupération de tous les clients depuis ExtraBat
-async function fetchAllExtrabatClients(supabase: any): Promise<SupabaseClient[]> {
+async function fetchAllExtrabatClients(supabase: SupabaseClient): Promise<SupabaseClientData[]> {
   const apiUrl = await getSettingValue(supabase, 'EXTRABAT_API_URL');
   const apiKey = await getSettingValue(supabase, 'EXTRABAT_API_KEY');
 
@@ -226,7 +228,7 @@ async function fetchAllExtrabatClients(supabase: any): Promise<SupabaseClient[]>
   });
 
   // Normaliser et logger les résultats
-  const normalizedClients = allClients.map(normalizeClientData);
+  const normalizedClients: SupabaseClientData[] = allClients.map(normalizeClientData);
 
   // Log de quelques clients normalisés pour vérification
   if (normalizedClients.length > 0) {
@@ -378,7 +380,7 @@ export async function syncExtrabatClientsToSupabase(): Promise<{
 }
 
 // Fonction pour une synchronisation incrémentale (seulement les nouveaux/modifiés)
-export async function syncExtrabatClientsIncremental(lastSyncDate?: Date): Promise<{
+export async function syncExtrabatClientsIncremental(): Promise<{
   success: boolean;
   total: number;
   inserted: number;

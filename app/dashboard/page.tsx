@@ -191,7 +191,7 @@ export default function DashboardPage() {
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
                 <Monitor className="h-5 w-5 text-purple-600" />
-                Vue d'ensemble
+                Vue d&apos;ensemble
               </h2>
 
               {/* Commandes récentes, clients, et statuts */}
@@ -266,7 +266,7 @@ export default function DashboardPage() {
 
             {/* Footer */}
             <div className="text-center text-xs text-gray-400 pt-4 border-t border-gray-200">
-              Dernière mise à jour: {new Date().toLocaleString('fr-FR')}
+              Dernière mise à jour&nbsp;: {new Date().toLocaleString('fr-FR')}
             </div>
           </div>
         )}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -27,15 +27,13 @@ import {
   ExternalLink,
   CheckCircle2,
   AlertCircle,
-  Calendar,
   Hash,
   Plus,
   Edit3,
   Send,
-  Clock,
-  MapPin
+  Clock
 } from 'lucide-react'
-import { useShipmentById, useUpdateShipmentStatus } from '@/hooks/useShipments'
+import { useShipment, useUpdateShipmentStatus } from '@/hooks/useShipments'
 import { useColisWithTracking, useUpdateSuiviChronopost } from '@/hooks/useShipmentColis'
 import { ShipmentStatus, ColisStatus } from '@/src/types'
 import { ColisStatusLabels, ColisStatusColors } from '@/src/types'
@@ -65,7 +63,8 @@ export default function ExpeditionInterface({
   shipmentId,
   className
 }: ExpeditionInterfaceProps) {
-  const { data: shipment, isLoading: shipmentLoading } = useShipmentById(shipmentId)
+  const { data: shipmentResponse, isLoading: shipmentLoading } = useShipment(shipmentId)
+  const shipment = shipmentResponse?.data
   const { data: colis = [], isLoading: colisLoading } = useColisWithTracking(shipmentId)
   const updateStatus = useUpdateShipmentStatus()
   const updateSuivi = useUpdateSuiviChronopost()
@@ -89,7 +88,7 @@ export default function ExpeditionInterface({
   const canExpedite = totalColis > 0 && withTracking === totalColis
 
   // Ouvrir le dialog de tracking
-  const openTrackingDialog = (colisItem: any) => {
+  const openTrackingDialog = (colisItem: { id: string; numero_suivi_chronopost?: string; numero_colis: number }) => {
     setTrackingDialog({
       colisId: colisItem.id,
       currentTracking: colisItem.numero_suivi_chronopost || '',
@@ -135,7 +134,7 @@ export default function ExpeditionInterface({
     setNewTracking('')
   }
 
-  // Finaliser l'expédition
+  // Finaliser l&apos;expédition
   const handleFinalizeExpedition = async () => {
     try {
       if (!canExpedite) {
@@ -150,15 +149,13 @@ export default function ExpeditionInterface({
 
       await updateStatus.mutateAsync({
         shipmentId,
-        status: 'expedie' as ShipmentStatus,
-        date_expedition: expeditionData.date_expedition,
-        transporteur: expeditionData.transporteur,
-        notes_expedition: expeditionData.notes_expedition
+        statut: 'expediee' as ShipmentStatus,
+        observations: expeditionData.notes_expedition
       })
 
       setShowExpeditionDialog(false)
       toast.success('Expédition finalisée avec succès')
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de la finalisation de l\'expédition')
     }
   }
@@ -180,7 +177,7 @@ export default function ExpeditionInterface({
         <CardContent className="p-6">
           <div className="flex items-center justify-center">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span className="ml-2 text-sm text-gray-600">Chargement de l'expédition...</span>
+            <span className="ml-2 text-sm text-gray-600">Chargement de l&apos;expédition...</span>
           </div>
         </CardContent>
       </Card>
@@ -189,7 +186,7 @@ export default function ExpeditionInterface({
 
   return (
     <div className={cn("space-y-6", className)}>
-      {/* En-tête avec informations de l'expédition */}
+      {/* En-tête avec informations de l&apos;expédition */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -199,10 +196,10 @@ export default function ExpeditionInterface({
                 Expédition #{shipmentId}
               </CardTitle>
               <div className="flex items-center gap-4 mt-2">
-                {shipment?.verificateur_nom && (
+                {shipment?.verificateur && (
                   <Badge variant="outline" className="flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3" />
-                    Vérifié par: {shipment.verificateur_nom}
+                    Vérifié par: {shipment?.verificateur}
                   </Badge>
                 )}
                 <Badge
@@ -245,7 +242,7 @@ export default function ExpeditionInterface({
         <TabsContent value="tracking" className="space-y-4">
           <SuiviChronopost
             shipmentId={shipmentId}
-            canEdit={shipment?.statut !== 'expedie'}
+            canEdit={shipment?.statut !== 'expediee'}
           />
         </TabsContent>
 
@@ -299,7 +296,7 @@ export default function ExpeditionInterface({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(colisItem.trackingUrl, '_blank')}
+                          onClick={() => colisItem.trackingUrl && window.open(colisItem.trackingUrl, '_blank')}
                         >
                           <ExternalLink className="h-4 w-4 mr-1" />
                           Suivre
@@ -341,7 +338,7 @@ export default function ExpeditionInterface({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Send className="h-5 w-5" />
-                Finalisation de l'Expédition
+                Finalisation de l&apos;Expédition
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -354,7 +351,7 @@ export default function ExpeditionInterface({
                     </h4>
                     <p className="text-sm text-gray-600">
                       {canExpedite
-                        ? "🎉 Parfait ! Tous les colis peuvent être suivis et l'expédition est prête."
+                        ? "🎉 Parfait ! Tous les colis peuvent être suivis et l&apos;expédition est prête."
                         : `⚠️ ${missingTracking} colis en attente de numéro de suivi.`
                       }
                     </p>
@@ -393,10 +390,10 @@ export default function ExpeditionInterface({
               {/* Action d'expédition */}
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="space-y-1">
-                  <h3 className="font-medium">Prêt pour l'expédition</h3>
+                  <h3 className="font-medium">Prêt pour l&apos;expédition</h3>
                   <p className="text-sm text-gray-600">
                     {canExpedite
-                      ? "Tous les colis ont un numéro de suivi. Vous pouvez finaliser l'expédition."
+                      ? "Tous les colis ont un numéro de suivi. Vous pouvez finaliser l&apos;expédition."
                       : "Veuillez ajouter les numéros de suivi manquants avant de continuer."
                     }
                   </p>
@@ -411,7 +408,7 @@ export default function ExpeditionInterface({
                   )}
                 >
                   <Send className="h-4 w-4 mr-2" />
-                  {canExpedite ? "Finaliser l'expédition" : "Tracking incomplet"}
+                  {canExpedite ? "Finaliser l&apos;expédition" : "Tracking incomplet"}
                 </Button>
               </div>
             </CardContent>
@@ -485,17 +482,17 @@ export default function ExpeditionInterface({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Send className="h-5 w-5" />
-              Finaliser l'Expédition #{shipmentId}
+              Finaliser l&apos;Expédition #{shipmentId}
             </DialogTitle>
             <DialogDescription>
-              Confirmez les détails d'expédition avant de finaliser l'envoi.
+              Confirmez les détails d&apos;expédition avant de finaliser l&apos;envoi.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date_expedition">Date d'expédition *</Label>
+                <Label htmlFor="date_expedition">Date d&apos;expédition *</Label>
                 <Input
                   id="date_expedition"
                   type="date"
@@ -521,7 +518,7 @@ export default function ExpeditionInterface({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes_expedition">Notes d'expédition</Label>
+              <Label htmlFor="notes_expedition">Notes d&apos;expédition</Label>
               <Textarea
                 id="notes_expedition"
                 placeholder="Notes additionnelles (optionnel)..."
@@ -535,7 +532,7 @@ export default function ExpeditionInterface({
 
             {/* Récapitulatif */}
             <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-800 mb-2">Récapitulatif de l'expédition</h4>
+              <h4 className="font-medium text-blue-800 mb-2">Récapitulatif de l&apos;expédition</h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-600">Colis total:</span>
@@ -561,7 +558,7 @@ export default function ExpeditionInterface({
                 className="rounded border-gray-300"
               />
               <Label htmlFor="confirmation_envoi" className="text-sm">
-                Je confirme que tous les colis sont prêts pour l'expédition
+                Je confirme que tous les colis sont prêts pour l&apos;expédition
               </Label>
             </div>
           </div>
@@ -582,7 +579,7 @@ export default function ExpeditionInterface({
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
               )}
               <Send className="h-4 w-4 mr-2" />
-              Finaliser l'expédition
+              Finaliser l&apos;expédition
             </Button>
           </DialogFooter>
         </DialogContent>

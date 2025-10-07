@@ -5,13 +5,14 @@ import type { UpdateSettingInput } from '@/src/types';
 // GET /api/settings/[key] - Récupérer un paramètre par sa clé
 export async function GET(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  context: { params: Promise<{ key: string }> }
 ) {
+  const { key } = await context.params;
   try {
     const { data: setting, error } = await supabase
       .from('app_settings')
       .select('*')
-      .eq('key', params.key)
+      .eq('key', key)
       .single();
 
     if (error) {
@@ -43,8 +44,9 @@ export async function GET(
 // PUT /api/settings/[key] - Mettre à jour un paramètre
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  context: { params: Promise<{ key: string }> }
 ) {
+  const { key } = await context.params;
   try {
     const body: UpdateSettingInput = await request.json();
 
@@ -54,7 +56,7 @@ export async function PUT(
         value: body.value,
         updated_at: new Date().toISOString(),
       })
-      .eq('key', params.key)
+      .eq('key', key)
       .select()
       .single();
 
@@ -81,13 +83,14 @@ export async function PUT(
 // DELETE /api/settings/[key] - Supprimer un paramètre
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  context: { params: Promise<{ key: string }> }
 ) {
+  const { key } = await context.params;
   try {
     const { error } = await supabase
       .from('app_settings')
       .delete()
-      .eq('key', params.key);
+      .eq('key', key);
 
     if (error) {
       console.error('Erreur lors de la suppression du paramètre:', error);

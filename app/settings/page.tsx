@@ -76,7 +76,7 @@ export default function SettingsPage() {
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-3">
                 <Settings className="h-8 w-8" />
-                Paramètres de l'application
+                Paramètres de l&apos;application
               </h1>
               <p className="text-gray-600 mt-1">
                 Gérez les paramètres généraux et les intégrations
@@ -98,7 +98,7 @@ export default function SettingsPage() {
                 <div>
                   <h3 className="font-semibold text-orange-900">Table app_settings non trouvée</h3>
                   <p className="text-sm text-orange-700 mt-1">
-                    Vous devez d'abord exécuter la migration SQL. Ouvrez le fichier{' '}
+                    Vous devez d&apos;abord exécuter la migration SQL. Ouvrez le fichier{' '}
                     <code className="bg-orange-100 px-2 py-0.5 rounded">migrations/create_app_settings.sql</code>{' '}
                     dans votre dashboard Supabase (SQL Editor) et exécutez-le.
                   </p>

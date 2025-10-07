@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
+
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
+
 import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
@@ -30,10 +30,11 @@ import {
   Package,
   Hash,
   Eye,
-  FileText,
+  
   Clock
 } from 'lucide-react'
-import { useShipmentById, useUpdateShipmentStatus } from '@/hooks/useShipments'
+import { useShipment, useUpdateShipmentStatus } from '@/hooks/useShipments'
+import type { ShipmentColis, ShipmentProduit } from '@/src/types'
 import { useShipmentProduits } from '@/hooks/useShipmentProduits'
 import { useShipmentColis } from '@/hooks/useShipmentColis'
 import { ShipmentStatus } from '@/src/types'
@@ -41,13 +42,13 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
 interface VerificationInterfaceProps {
-  shipmentId: number
+  shipmentDataId: number
   className?: string
 }
 
 interface VerificationItem {
   id: string
-  type: 'colis' | 'produit'
+  type: 'colisData' | 'produit'
   reference: string
   description: string
   verified: boolean
@@ -62,12 +63,13 @@ interface VerificationResult {
 }
 
 export default function VerificationInterface({
-  shipmentId,
+  shipmentDataId,
   className
 }: VerificationInterfaceProps) {
-  const { data: shipment, isLoading: shipmentLoading } = useShipmentById(shipmentId)
-  const { data: produits, isLoading: produitsLoading } = useShipmentProduits(shipmentId)
-  const { data: colis, isLoading: colisLoading } = useShipmentColis(shipmentId)
+  const { data: shipmentDataData, isLoading: shipmentDataLoading } = useShipment(shipmentDataId)
+   const { data: colisDataRaw = { data: [], total: 0 }, isLoading: colisDataLoading } = useShipmentColis(shipmentDataId);
+   const { data: produitsDataArray = [], isLoading: produitsDataLoading } = useShipmentProduits(shipmentDataId);
+   const colisDataArray = colisDataRaw.data;
   const updateStatus = useUpdateShipmentStatus()
 
   const [verificationItems, setVerificationItems] = useState<VerificationItem[]>([])
@@ -78,37 +80,35 @@ export default function VerificationInterface({
   })
 
   // Initialiser les éléments de vérification
-  useEffect(() => {
-    if (colis && produits) {
-      const items: VerificationItem[] = []
+   useEffect(() => {
+     if (colisDataArray.length > 0 || produitsDataArray.length > 0) {
+       const items: VerificationItem[] = [];
 
-      // Ajouter les colis
-      colis.forEach(c => {
-        items.push({
-          id: `colis-${c.id}`,
-          type: 'colis',
-          reference: `Colis #${c.numero_colis}`,
-          description: `${c.poids_grammes ? c.poids_grammes + 'g' : 'Poids non défini'} - ${c.dimensions_cm || 'Dimensions non définies'}`,
-          verified: false,
-          hasIssue: false
-        })
-      })
+       colisDataArray.forEach((c: ShipmentColis) => {
+         items.push({
+           id: `colisData-${c.id}`,
+           type: 'colisData',
+           reference: `Colis #${c.numero_colis}`,
+           description: `${c.poids_grammes ? c.poids_grammes + 'g' : 'Poids non défini'} - ${c.dimensions_cm || 'Dimensions non définies'}`,
+           verified: false,
+           hasIssue: false
+         });
+       });
 
-      // Ajouter les produits
-      produits.forEach(p => {
-        items.push({
-          id: `produit-${p.id}`,
-          type: 'produit',
-          reference: p.nom,
-          description: `Quantité: ${p.quantite}`,
-          verified: false,
-          hasIssue: false
-        })
-      })
+       produitsDataArray.forEach((p: ShipmentProduit) => {
+         items.push({
+           id: `produit-${p.id}`,
+           type: 'produit',
+           reference: p.commande_produit?.nom_produit || '',
+           description: `Quantité: ${p.commande_produit?.quantite ?? ''}`,
+           verified: false,
+           hasIssue: false
+         });
+       });
 
-      setVerificationItems(items)
-    }
-  }, [colis, produits])
+       setVerificationItems(items);
+     }
+   }, [colisDataArray, produitsDataArray]);
 
   // Gestion des vérifications
   const handleItemVerification = (itemId: string, verified: boolean, hasIssue: boolean = false, issueDescription?: string) => {
@@ -153,16 +153,15 @@ export default function VerificationInterface({
     setShowResultDialog(true)
   }
 
-  // Valider ou rejeter l'expédition
+  // Valider ou rejeter l&apos;expédition
   const handleSubmitVerification = async () => {
     try {
-      const newStatus: ShipmentStatus = verificationResult.approved ? 'pret_expedition' : 'preparation'
+      const newStatus: ShipmentStatus = verificationResult.approved ? 'verifiee' : 'preparee'
 
-      await updateStatus.mutateAsync({
-        shipmentId,
-        status: newStatus,
-        verificateur_notes: verificationResult.verificateurNotes
-      })
+       await updateStatus.mutateAsync({
+         shipmentId: shipmentDataId,
+         statut: newStatus
+       })
 
       setShowResultDialog(false)
       toast.success(
@@ -175,7 +174,7 @@ export default function VerificationInterface({
     }
   }
 
-  if (shipmentLoading || produitsLoading || colisLoading) {
+  if (shipmentDataLoading || produitsDataLoading || colisDataLoading) {
     return (
       <Card className={className}>
         <CardContent className="p-6">
@@ -190,28 +189,28 @@ export default function VerificationInterface({
 
   return (
     <div className={cn("space-y-6", className)}>
-      {/* En-tête avec informations de l'expédition */}
+      {/* En-tête avec informations de l&apos;expédition */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Eye className="h-5 w-5" />
-                Vérification Expédition #{shipmentId}
+                Vérification Expédition #{shipmentDataId}
               </CardTitle>
               <div className="flex items-center gap-4 mt-2">
-                {shipment?.preparateur_nom && (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Package className="h-3 w-3" />
-                    Préparé par: {shipment.preparateur_nom}
-                  </Badge>
-                )}
-                {shipment?.verificateur_nom && (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <User className="h-3 w-3" />
-                    Vérificateur: {shipment.verificateur_nom}
-                  </Badge>
-                )}
+{shipmentDataData?.data?.preparateur_info?.nom && (
+  <Badge variant="outline" className="flex items-center gap-1">
+    <Package className="h-3 w-3" />
+    Préparé par: {shipmentDataData.data.preparateur_info.nom}
+  </Badge>
+)}
+{shipmentDataData?.data?.verificateur_info?.nom && (
+  <Badge variant="outline" className="flex items-center gap-1">
+    <User className="h-3 w-3" />
+    Vérificateur: {shipmentDataData.data.verificateur_info.nom}
+  </Badge>
+)}
                 <Badge
                   variant="secondary"
                   className={cn(
@@ -265,7 +264,7 @@ export default function VerificationInterface({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
-                          {item.type === 'colis' ? (
+                          {item.type === 'colisData' ? (
                             <Hash className="h-4 w-4 text-gray-500" />
                           ) : (
                             <Package className="h-4 w-4 text-gray-500" />
@@ -372,7 +371,7 @@ export default function VerificationInterface({
                 {stats.isComplete
                   ? stats.hasIssues
                     ? "Vérification terminée avec des problèmes détectés."
-                    : "Vérification terminée sans problème. L'expédition est prête."
+                    : "Vérification terminée sans problème. L&apos;expédition est prête."
                   : `Il reste ${stats.totalItems - stats.verifiedItems} éléments à vérifier.`
                 }
               </p>
@@ -397,7 +396,7 @@ export default function VerificationInterface({
                 ) : (
                   <>
                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Approuver l'expédition
+                    Approuver l&apos;expédition
                   </>
                 )
               ) : (
@@ -421,12 +420,12 @@ export default function VerificationInterface({
               ) : (
                 <XCircle className="h-5 w-5 text-red-600" />
               )}
-              {verificationResult.approved ? 'Approuver' : 'Rejeter'} l'expédition
+              {verificationResult.approved ? 'Approuver' : 'Rejeter'} l&apos;expédition
             </DialogTitle>
             <DialogDescription>
               {verificationResult.approved
-                ? "L'expédition sera marquée comme prête pour l'envoi."
-                : "L'expédition sera renvoyée en préparation pour correction."
+                ? "L&apos;expédition sera marquée comme prête pour l'envoi."
+                : "L&apos;expédition sera renvoyée en préparation pour correction."
               }
             </DialogDescription>
           </DialogHeader>
@@ -476,7 +475,7 @@ export default function VerificationInterface({
               {updateStatus.isPending && (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
               )}
-              {verificationResult.approved ? 'Approuver' : 'Rejeter'} l'expédition
+              {verificationResult.approved ? 'Approuver' : 'Rejeter'} l&apos;expédition
             </Button>
           </DialogFooter>
         </DialogContent>

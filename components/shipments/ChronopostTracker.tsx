@@ -256,7 +256,7 @@ export default function ChronopostTracker({
                 <Dialog open={showFullTracking} onOpenChange={setShowFullTracking}>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="w-full">
-                      Voir l'historique complet ({tracking.events.length} événements)
+                      Voir l&apos;historique complet ({tracking.events.length} événements)
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">

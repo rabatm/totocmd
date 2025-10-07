@@ -10,28 +10,32 @@ import {
 } from '@/components/ui/select';
 import { useUpdateProduitStatus } from '@/hooks/useMutations';
 import { useBulkDeleteProduits } from '@/hooks/useProduitMutations';
-import { CommandeProduit } from '@/src/types';
+import { CommandeProduit, CommandeWithDetails } from '@/src/types';
 import { jsPDF } from 'jspdf';
-import { Loader2, Trash2, Printer } from 'lucide-react';
+import { Loader2, Trash2, Printer, Truck } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useState } from 'react';
+import CreateShipmentDialog from '@/components/shipments/CreateShipmentDialog';
 // import { toast } from 'sonner';
 
 interface SelectedBulkStatusButtonProps {
   commandeId: string;
   selectedProducts: CommandeProduit[];
   onClearSelection: () => void;
+  commande: CommandeWithDetails;
 }
 
 export default function SelectedBulkStatusButton({
   commandeId,
   selectedProducts,
   onClearSelection,
+  commande,
 }: SelectedBulkStatusButtonProps) {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [showShipmentDialog, setShowShipmentDialog] = useState(false);
   const updateProduitStatus = useUpdateProduitStatus();
   const bulkDeleteProduits = useBulkDeleteProduits();
 
@@ -195,64 +199,85 @@ export default function SelectedBulkStatusButton({
   if (selectedProducts.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-      <span className="text-sm font-medium text-blue-900">
-        {selectedProducts.length} produit(s) sélectionné(s)
-      </span>
+    <>
+      <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <span className="text-sm font-medium text-blue-900">
+          {selectedProducts.length} produit(s) sélectionné(s)
+        </span>
 
-      <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-        <SelectTrigger className="w-48">
-          <SelectValue placeholder="Changer le statut" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="scanne">Scanné</SelectItem>
-          <SelectItem value="en_preparation">En préparation</SelectItem>
-          <SelectItem value="pret_expedition">Prêt expédition</SelectItem>
-          <SelectItem value="expedie">Expédié</SelectItem>
-          <SelectItem value="livre">Livré</SelectItem>
-        </SelectContent>
-      </Select>
+        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Changer le statut" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="scanne">Scanné</SelectItem>
+            <SelectItem value="en_preparation">En préparation</SelectItem>
+            <SelectItem value="pret_expedition">Prêt expédition</SelectItem>
+            <SelectItem value="expedie">Expédié</SelectItem>
+            <SelectItem value="livre">Livré</SelectItem>
+          </SelectContent>
+        </Select>
 
-      <Button
-        onClick={handleBulkUpdate}
-        disabled={!selectedStatus || isUpdating}
-        size="sm"
-      >
-        {isUpdating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-        Appliquer
-      </Button>
+        <Button
+          onClick={handleBulkUpdate}
+          disabled={!selectedStatus || isUpdating}
+          size="sm"
+        >
+          {isUpdating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+          Appliquer
+        </Button>
 
-      <Button
-        onClick={handleBulkDelete}
-        disabled={isDeleting}
-        size="sm"
-        variant="destructive"
-        className="flex items-center gap-1"
-      >
-        {isDeleting && <Loader2 className="h-3 w-3 animate-spin" />}
-        <Trash2 className="h-3 w-3" />
-        Supprimer
-      </Button>
+        <Button
+          onClick={() => setShowShipmentDialog(true)}
+          size="sm"
+          className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-1"
+        >
+          <Truck className="h-3 w-3" />
+          Créer expédition
+        </Button>
 
-      <Button
-        onClick={handleBulkPrint}
-        disabled={isPrinting}
-        size="sm"
-        variant="secondary"
-        className="flex items-center gap-1"
-      >
-        {isPrinting && <Loader2 className="h-3 w-3 animate-spin" />}
-        <Printer className="h-3 w-3" />
-        Imprimer
-      </Button>
+        <Button
+          onClick={handleBulkDelete}
+          disabled={isDeleting}
+          size="sm"
+          variant="destructive"
+          className="flex items-center gap-1"
+        >
+          {isDeleting && <Loader2 className="h-3 w-3 animate-spin" />}
+          <Trash2 className="h-3 w-3" />
+          Supprimer
+        </Button>
 
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onClearSelection}
-      >
-        Annuler
-      </Button>
-    </div>
+        <Button
+          onClick={handleBulkPrint}
+          disabled={isPrinting}
+          size="sm"
+          variant="secondary"
+          className="flex items-center gap-1"
+        >
+          {isPrinting && <Loader2 className="h-3 w-3 animate-spin" />}
+          <Printer className="h-3 w-3" />
+          Imprimer
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onClearSelection}
+        >
+          Annuler
+        </Button>
+      </div>
+
+      {/* Dialog de création d'expédition avec les produits sélectionnés */}
+      {showShipmentDialog && (
+        <CreateShipmentDialog
+          open={showShipmentDialog}
+          onOpenChange={setShowShipmentDialog}
+          commande={commande}
+          selectedProducts={selectedProducts}
+        />
+      )}
+    </>
   );
 }

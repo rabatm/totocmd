@@ -61,10 +61,10 @@ export default function ShipmentCard({ shipment, showCommande = false }: Shipmen
             </CardTitle>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>{shipment.client}</span>
-              {showCommande && shipment.commandes && (
+              {showCommande && shipment.commande && (
                 <>
                   <span>•</span>
-                  <span>Commande #{shipment.commandes.numero_commande}</span>
+                  <span>Commande #{shipment.commande.numero_commande}</span>
                 </>
               )}
             </div>
@@ -155,7 +155,7 @@ export default function ShipmentCard({ shipment, showCommande = false }: Shipmen
         <div className="space-y-4">
           <SuiviChronopost
             shipmentId={shipment.id}
-            canEdit={shipment.statut !== 'expedie'}
+            canEdit={shipment.statut !== 'expediee'}
           />
 
           <ColisManagement

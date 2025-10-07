@@ -46,7 +46,7 @@ export default function CreateShipmentDialog({
     }
   }, [open, commande.numero_commande])
 
-  // Créer l'expédition
+  // Créer l&apos;expédition
   const handleCreateShipment = async () => {
     try {
       if (!numeroFacture.trim()) {
@@ -176,7 +176,7 @@ export default function CreateShipmentDialog({
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             )}
             <Truck className="h-4 w-4 mr-2" />
-            Créer l'expédition
+            Créer l&apos;expédition
           </Button>
         </DialogFooter>
       </DialogContent>

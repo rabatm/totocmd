@@ -113,7 +113,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params
     console.log(`🔄 PUT /shipments/${id} - Mise à jour`);
-    const body: any = await request.json();
+    const body: Partial<import('@/src/types').UpdateShipmentStatusInput & Record<string, unknown>> = await request.json();
 
     console.log('📦 Données de mise à jour:', body);
 

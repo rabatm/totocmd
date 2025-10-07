@@ -43,7 +43,7 @@ export default function CommandesAlertsCard() {
   const lateCommandes = normalCommandes.filter(c => {
     if (['expedie', 'livre', 'annule'].includes(c.etat)) return false;
 
-    const createdDate = new Date(c.created_at || c.date_commande);
+    const createdDate = new Date(c.created_at ?? c.date_commande ?? '');
     const daysOld = (today.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
     return daysOld > 14;
   });
@@ -52,7 +52,7 @@ export default function CommandesAlertsCard() {
   const oldCommandes = normalCommandes.filter(c => {
     if (['expedie', 'livre', 'annule'].includes(c.etat)) return false;
 
-    const createdDate = new Date(c.created_at || c.date_commande);
+    const createdDate = new Date(c.created_at ?? c.date_commande ?? '');
     const daysOld = (today.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
     return daysOld > 7 && daysOld <= 14;
   });
@@ -116,7 +116,7 @@ export default function CommandesAlertsCard() {
             <AlertDescription>
               <div className="mt-2 space-y-2">
                 {lateCommandes.slice(0, 3).map(commande => {
-                  const createdDate = new Date(commande.created_at || commande.date_commande);
+                  const createdDate = new Date(commande.created_at ?? commande.date_commande ?? '');
                   const daysOld = Math.floor((today.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
                   const progression = calculateProgression(commande.commande_produits);
                   return (
@@ -177,7 +177,7 @@ export default function CommandesAlertsCard() {
               <AlertDescription className="text-orange-800">
                 <div className="mt-2 space-y-2">
                   {oldCommandes.slice(0, 3).map(commande => {
-                    const createdDate = new Date(commande.created_at || commande.date_commande);
+                    const createdDate = new Date(commande.created_at ?? commande.date_commande ?? '');
                     const daysOld = Math.floor((today.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
                     const progression = calculateProgression(commande.commande_produits);
                     return (

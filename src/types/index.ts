@@ -364,6 +364,11 @@ export interface ShipmentWithDetails extends Shipment {
   colis?: ShipmentColis[];
   preparateur_info?: Personnel;
   verificateur_info?: Personnel;
+  commande_produits?: CommandeProduit[]; // Pour faciliter l'accès aux produits de la commande
+  client_info?: Client;
+  clients?: Client[]; // Supabase peut retourner un array
+  number_of_colis?: number; // Nombre de colis (agrégation)
+  numero_facture?: string; // Pour filtrer sur la facture
 }
 
 // Interface pour la mise à jour du statut d'expédition

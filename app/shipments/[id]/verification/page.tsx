@@ -11,12 +11,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { useShipment } from '@/hooks/useShipments';
 import { useShipmentWorkflow } from '@/hooks/useShipmentWorkflow';
-import { ShipmentProduit } from '@/src/types';
+import { ShipmentProduit, ShipmentWithDetails } from '@/src/types';
 import {
   ArrowLeft,
   Package,
-  Check,
-  X,
   AlertCircle,
   CheckCircle2,
   Clock,
@@ -45,12 +43,12 @@ interface ProductVerificationStatus {
 export default function ShipmentVerificationPage({ params }: ShipmentVerificationPageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { data: shipment, isLoading } = useShipment(id);
-  const workflow = useShipmentWorkflow(shipment!);
+  const { data: shipmentResponse, isLoading } = useShipment(Number(id));
+  const shipment = shipmentResponse?.data;
+  const workflow = useShipmentWorkflow(shipment as ShipmentWithDetails);
 
   const [observations, setObservations] = useState('');
   const [verificationProducts, setVerificationProducts] = useState<ProductVerificationStatus[]>([]);
-  const [globalVerificationPassed, setGlobalVerificationPassed] = useState<boolean | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Mise à jour de l'heure toutes les secondes
@@ -63,7 +61,7 @@ export default function ShipmentVerificationPage({ params }: ShipmentVerificatio
   useEffect(() => {
     if (shipment?.shipment_produits) {
       setVerificationProducts(
-        shipment.shipment_produits.map(product => ({
+        shipment?.shipment_produits.map(product => ({
           product,
           verified: false,
           hasIssue: false,
@@ -130,7 +128,7 @@ export default function ShipmentVerificationPage({ params }: ShipmentVerificatio
       await workflow.completeVerification(observations || undefined, true);
       toast.success('Vérification approuvée avec succès !');
       router.push(`/shipments/${id}`);
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de l\'approbation de la vérification');
     }
   };
@@ -147,7 +145,7 @@ export default function ShipmentVerificationPage({ params }: ShipmentVerificatio
       await workflow.completeVerification(fullObservations, false);
       toast.success('Expédition renvoyée en préparation');
       router.push(`/shipments/${id}`);
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors du renvoi en préparation');
     }
   };
@@ -186,7 +184,7 @@ export default function ShipmentVerificationPage({ params }: ShipmentVerificatio
     );
   }
 
-  if (shipment.statut !== 'preparee') {
+  if (shipment?.statut !== 'preparee') {
     return (
       <ProtectedRoute>
         <div className="container mx-auto p-6">
@@ -196,14 +194,14 @@ export default function ShipmentVerificationPage({ params }: ShipmentVerificatio
               Interface non disponible
             </h1>
             <p className="text-gray-600 mb-6">
-              Cette expédition n'est pas prête pour la vérification.
+              Cette expédition n&apos;est pas prête pour la vérification.
               <br />
-              Statut actuel: {shipment.statut}
+              Statut actuel: {shipment?.statut}
             </p>
             <Link href={`/shipments/${id}`}>
               <Button>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour à l'expédition
+                Retour à l&apos;expédition
               </Button>
             </Link>
           </div>
@@ -236,10 +234,10 @@ export default function ShipmentVerificationPage({ params }: ShipmentVerificatio
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <Eye className="h-6 w-6 text-blue-600" />
-                Vérification - {shipment.numero_facture}
+                Vérification - {shipment?.numero_facture}
               </h1>
               <p className="text-gray-600">
-                Client: {shipment.client} • Vérificateur: {shipment.verificateur}
+                Client: {shipment?.client} • Vérificateur: {shipment?.verificateur}
               </p>
             </div>
           </div>
@@ -251,7 +249,7 @@ export default function ShipmentVerificationPage({ params }: ShipmentVerificatio
             </div>
             <div className="flex items-center gap-2 text-sm">
               <User className="h-4 w-4" />
-              <span className="font-medium">{shipment.verificateur}</span>
+              <span className="font-medium">{shipment?.verificateur}</span>
             </div>
           </div>
         </div>

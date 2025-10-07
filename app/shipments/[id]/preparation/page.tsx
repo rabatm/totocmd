@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useShipment } from '@/hooks/useShipments';
 import { useShipmentWorkflow } from '@/hooks/useShipmentWorkflow';
-import { ShipmentProduit } from '@/src/types';
+import { ShipmentProduit, ShipmentWithDetails } from '@/src/types';
 import {
   ArrowLeft,
   Package,
@@ -42,8 +42,9 @@ interface ProductPreparationStatus {
 export default function ShipmentPreparationPage({ params }: ShipmentPreparationPageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { data: shipment, isLoading } = useShipment(id);
-  const workflow = useShipmentWorkflow(shipment!);
+  const { data: shipmentResponse, isLoading } = useShipment(Number(id));
+  const shipment = shipmentResponse?.data;
+  const workflow = useShipmentWorkflow(shipment as ShipmentWithDetails);
 
   const [scanInput, setScanInput] = useState('');
   const [observations, setObservations] = useState('');
@@ -60,7 +61,7 @@ export default function ShipmentPreparationPage({ params }: ShipmentPreparationP
   useEffect(() => {
     if (shipment?.shipment_produits) {
       setPreparationProducts(
-        shipment.shipment_produits.map(product => ({
+        shipment?.shipment_produits.map(product => ({
           product,
           scanned: false,
           currentQuantity: 0,
@@ -166,7 +167,7 @@ export default function ShipmentPreparationPage({ params }: ShipmentPreparationP
       await workflow.completePreparation(observations || undefined);
       toast.success('Préparation terminée avec succès !');
       router.push(`/shipments/${id}`);
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de la finalisation de la préparation');
     }
   };
@@ -205,7 +206,7 @@ export default function ShipmentPreparationPage({ params }: ShipmentPreparationP
     );
   }
 
-  if (shipment.statut !== 'En préparation' && shipment.statut !== 'brouillon') {
+  if (shipment?.statut !== 'En préparation' && shipment?.statut !== 'brouillon') {
     return (
       <ProtectedRoute>
         <div className="container mx-auto p-6">
@@ -215,12 +216,12 @@ export default function ShipmentPreparationPage({ params }: ShipmentPreparationP
               Interface non disponible
             </h1>
             <p className="text-gray-600 mb-6">
-              Cette expédition n'est pas en cours de préparation.
+              Cette expédition n&apos;est pas en cours de préparation.
             </p>
             <Link href={`/shipments/${id}`}>
               <Button>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour à l'expédition
+                Retour à l&apos;expédition
               </Button>
             </Link>
           </div>
@@ -244,10 +245,10 @@ export default function ShipmentPreparationPage({ params }: ShipmentPreparationP
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <Package className="h-6 w-6 text-blue-600" />
-                Préparation - {shipment.numero_facture}
+                Préparation - {shipment?.numero_facture}
               </h1>
               <p className="text-gray-600">
-                Client: {shipment.client} • Préparateur: {shipment.preparateur}
+                Client: {shipment?.client} • Préparateur: {shipment?.preparateur}
               </p>
             </div>
           </div>
@@ -259,7 +260,7 @@ export default function ShipmentPreparationPage({ params }: ShipmentPreparationP
             </div>
             <div className="flex items-center gap-2 text-sm">
               <User className="h-4 w-4" />
-              <span className="font-medium">{shipment.preparateur}</span>
+              <span className="font-medium">{shipment?.preparateur}</span>
             </div>
           </div>
         </div>
@@ -405,8 +406,7 @@ export default function ShipmentPreparationPage({ params }: ShipmentPreparationP
                                   max={item.targetQuantity}
                                   value={item.currentQuantity}
                                   onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 0)}
-                                  className="w-16 text-center"
-                                  size="sm"
+                                  className="w-16 text-center text-sm"
                                 />
                                 <span className="text-sm text-gray-500">
                                   / {item.targetQuantity}

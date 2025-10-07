@@ -235,7 +235,7 @@ export default function ShipmentsStatsCard() {
           <h4 className="font-medium mb-2">Activité récente</h4>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-gray-600">Aujourd'hui</p>
+              <p className="text-gray-600">Aujourd&apos;hui</p>
               <p className="font-semibold">{stats.todayCount} expédition{stats.todayCount > 1 ? 's' : ''}</p>
             </div>
             <div>

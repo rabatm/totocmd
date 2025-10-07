@@ -19,6 +19,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useShipment } from '@/hooks/useShipments';
 import { useShipmentWorkflow } from '@/hooks/useShipmentWorkflow';
+import { ShipmentWithDetails, CommandeWithDetails } from '@/src/types';
 import {
   ArrowLeft,
   Package,
@@ -26,7 +27,6 @@ import {
   Send,
   AlertCircle,
   Clock,
-  User,
   Printer,
   CheckCircle2,
   MapPin,
@@ -45,8 +45,9 @@ interface ShipmentExpeditionPageProps {
 export default function ShipmentExpeditionPage({ params }: ShipmentExpeditionPageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { data: shipment, isLoading } = useShipment(id);
-  const workflow = useShipmentWorkflow(shipment!);
+  const { data: shipmentResponse, isLoading } = useShipment(Number(id));
+  const shipment = shipmentResponse?.data;
+  const workflow = useShipmentWorkflow(shipment as ShipmentWithDetails);
 
   const [formData, setFormData] = useState({
     numeroFacture: '',
@@ -95,7 +96,7 @@ export default function ShipmentExpeditionPage({ params }: ShipmentExpeditionPag
       // Simulation d'impression d'étiquette
       await new Promise(resolve => setTimeout(resolve, 2000));
       toast.success('Étiquette d\'expédition imprimée');
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de l\'impression');
     } finally {
       setPrintingLabel(false);
@@ -117,7 +118,7 @@ export default function ShipmentExpeditionPage({ params }: ShipmentExpeditionPag
       const finalObservations = [
         formData.observations,
         `Transporteur: ${formData.transporteur}`,
-        `Date d'expédition: ${formData.dateExpedition}`,
+        `Date d&apos;expédition: ${formData.dateExpedition}`,
       ].filter(Boolean).join(' - ');
 
       await workflow.finalizeShipment({
@@ -129,7 +130,7 @@ export default function ShipmentExpeditionPage({ params }: ShipmentExpeditionPag
 
       toast.success('Expédition finalisée avec succès !');
       router.push(`/shipments/${id}`);
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de la finalisation de l\'expédition');
     }
   };
@@ -178,14 +179,14 @@ export default function ShipmentExpeditionPage({ params }: ShipmentExpeditionPag
               Interface non disponible
             </h1>
             <p className="text-gray-600 mb-6">
-              Cette expédition n'est pas prête pour l'expédition finale.
+              Cette expédition n&apos;est pas prête pour l&apos;expédition finale.
               <br />
               Statut actuel: {shipment.statut}
             </p>
             <Link href={`/shipments/${id}`}>
               <Button>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour à l'expédition
+                Retour à l&apos;expédition
               </Button>
             </Link>
           </div>
@@ -241,13 +242,13 @@ export default function ShipmentExpeditionPage({ params }: ShipmentExpeditionPag
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Formulaire d'expédition */}
+          {/* Formulaire d&apos;expédition */}
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Truck className="h-5 w-5" />
-                  Informations d'expédition
+                  Informations d&apos;expédition
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -294,7 +295,7 @@ export default function ShipmentExpeditionPage({ params }: ShipmentExpeditionPag
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="dateExpedition">Date d'expédition</Label>
+                    <Label htmlFor="dateExpedition">Date d&apos;expédition</Label>
                     <Input
                       id="dateExpedition"
                       type="date"
@@ -351,7 +352,7 @@ export default function ShipmentExpeditionPage({ params }: ShipmentExpeditionPag
 
                 {/* Observations */}
                 <div className="space-y-2">
-                  <Label htmlFor="observations">Observations sur l'expédition</Label>
+                  <Label htmlFor="observations">Observations sur l&apos;expédition</Label>
                   <Textarea
                     id="observations"
                     value={formData.observations}
@@ -407,7 +408,7 @@ export default function ShipmentExpeditionPage({ params }: ShipmentExpeditionPag
             {/* Actions */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Actions d'expédition</CardTitle>
+                <CardTitle className="text-lg">Actions d&apos;expédition</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button
@@ -421,7 +422,7 @@ export default function ShipmentExpeditionPage({ params }: ShipmentExpeditionPag
                   ) : (
                     <Printer className="h-4 w-4 mr-2" />
                   )}
-                  Imprimer l'étiquette
+                  Imprimer l&apos;étiquette
                 </Button>
 
                 <Button
@@ -434,7 +435,7 @@ export default function ShipmentExpeditionPage({ params }: ShipmentExpeditionPag
                   ) : (
                     <CheckCircle2 className="h-4 w-4 mr-2" />
                   )}
-                  Finaliser l'expédition
+                  Finaliser l&apos;expédition
                 </Button>
 
                 {!canFinalize && (
@@ -457,38 +458,44 @@ export default function ShipmentExpeditionPage({ params }: ShipmentExpeditionPag
               <CardContent className="space-y-3">
                 <div>
                   <p className="font-medium">{shipment.client}</p>
-                  {shipment.commandes?.clients && (
-                    <div className="text-sm text-gray-600 space-y-1 mt-2">
-                      {shipment.commandes.clients.email && (
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-3 w-3" />
-                          {shipment.commandes.clients.email}
-                        </div>
-                      )}
-                      {shipment.commandes.clients.phone && (
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-3 w-3" />
-                          {shipment.commandes.clients.phone}
-                        </div>
-                      )}
-                      {shipment.commandes.clients.address && (
-                        <div className="flex items-start gap-2 mt-2">
-                          <MapPin className="h-3 w-3 mt-0.5" />
-                          <div className="text-xs">
-                            <div>{shipment.commandes.clients.address}</div>
-                            {(shipment.commandes.clients.postal_code || shipment.commandes.clients.city) && (
-                              <div>
-                                {shipment.commandes.clients.postal_code} {shipment.commandes.clients.city}
-                              </div>
-                            )}
-                            {shipment.commandes.clients.country && (
-                              <div>{shipment.commandes.clients.country}</div>
-                            )}
+                  {(() => {
+                    const commande = shipment.commande as CommandeWithDetails | undefined;
+                    const clientInfo = commande?.client || commande?.clients;
+                    if (!clientInfo) return null;
+                    
+                    return (
+                      <div className="text-sm text-gray-600 space-y-1 mt-2">
+                        {clientInfo.email && (
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-3 w-3" />
+                            {clientInfo.email}
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        )}
+                        {clientInfo.phone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-3 w-3" />
+                            {clientInfo.phone}
+                          </div>
+                        )}
+                        {clientInfo.address && (
+                          <div className="flex items-start gap-2 mt-2">
+                            <MapPin className="h-3 w-3 mt-0.5" />
+                            <div className="text-xs">
+                              <div>{clientInfo.address}</div>
+                              {(clientInfo.postal_code || clientInfo.city) && (
+                                <div>
+                                  {clientInfo.postal_code} {clientInfo.city}
+                                </div>
+                              )}
+                              {clientInfo.country && (
+                                <div>{clientInfo.country}</div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </CardContent>
             </Card>

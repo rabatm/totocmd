@@ -60,7 +60,7 @@ export default function CommandeShipments({ commande }: CommandeShipmentsProps) 
 
   const handleShipmentCreated = (shipmentId: number) => {
     setShowCreateDialog(false);
-    // Optionnel: rediriger vers le détail de l'expédition
+    // Optionnel: rediriger vers le détail de l&apos;expédition
     // router.push(`/shipments/${shipmentId}`);
   };
 
@@ -118,7 +118,7 @@ export default function CommandeShipments({ commande }: CommandeShipmentsProps) 
               Aucune expédition
             </h3>
             <p className="text-gray-600 mb-4">
-              Cette commande n'a pas encore d'expédition créée.
+              Cette commande n&apos;a pas encore d&apos;expédition créée.
             </p>
             <Button
               className="bg-purple-600 hover:bg-purple-700 text-white"
@@ -191,7 +191,7 @@ export default function CommandeShipments({ commande }: CommandeShipmentsProps) 
               <p className="text-sm text-blue-700">
                 {(commande.commande_produits || []).length} produit{(commande.commande_produits || []).length !== 1 ? 's' : ''} dans cette commande peuvent être expédié{(commande.commande_produits || []).length !== 1 ? 's' : ''}.
                 <br />
-                <span className="text-xs">Lors de l'expédition, le statut des produits sera automatiquement mis à jour vers "expédié".</span>
+                <span className="text-xs">Lors de l&apos;expédition, le statut des produits sera automatiquement mis à jour vers &quot;expédié&quot;.</span>
               </p>
             </div>
           </div>
@@ -199,7 +199,7 @@ export default function CommandeShipments({ commande }: CommandeShipmentsProps) 
       </CardContent>
     </Card>
 
-    {/* Dialog de création d'expédition */}
+    {/* Dialog de création d&apos;expédition */}
     {showCreateDialog && (
       <CreateShipmentDialog
         open={showCreateDialog}

@@ -17,7 +17,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useShipment } from '@/hooks/useShipments';
 import { useShipmentWorkflow } from '@/hooks/useShipmentWorkflow';
-import { ShipmentStatusLabels, ShipmentStatusColors } from '@/src/types';
+import { ShipmentStatusLabels, ShipmentStatusColors, ShipmentWithDetails, CommandeWithDetails } from '@/src/types';
 import {
   ArrowLeft,
   Package,
@@ -42,10 +42,11 @@ interface ShipmentDetailPageProps {
 export default function ShipmentDetailPage({ params }: ShipmentDetailPageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { data: shipment, isLoading } = useShipment(id);
+  const { data: shipmentResponse, isLoading } = useShipment(Number(id));
+  const shipment = shipmentResponse?.data;
   const [showAllProducts, setShowAllProducts] = useState(false);
 
-  const workflow = useShipmentWorkflow(shipment!);
+  const workflow = useShipmentWorkflow(shipment as ShipmentWithDetails);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Non définie';
@@ -87,7 +88,7 @@ export default function ShipmentDetailPage({ params }: ShipmentDetailPageProps) 
               Expédition introuvable
             </h1>
             <p className="text-gray-600 mb-6">
-              L'expédition demandée n'existe pas ou a été supprimée.
+              L&apos;expédition demandée n&apos;existe pas ou a été supprimée.
             </p>
             <Link href="/shipments">
               <Button>
@@ -151,34 +152,39 @@ export default function ShipmentDetailPage({ params }: ShipmentDetailPageProps) 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Client</label>
-                    <p className="font-medium">{shipment.client}</p>
-                    {shipment.commandes?.clients && (
-                      <div className="mt-1 text-sm text-gray-600 space-y-1">
-                        {shipment.commandes.clients.email && (
-                          <div className="flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {shipment.commandes.clients.email}
-                          </div>
-                        )}
-                        {shipment.commandes.clients.phone && (
-                          <div className="flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
-                            {shipment.commandes.clients.phone}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <p className="font-medium">{shipment?.client}</p>
+                    {(() => {
+                      const commande = shipment?.commande as CommandeWithDetails | undefined;
+                      const clientInfo = commande?.client || commande?.clients;
+                      if (!clientInfo) return null;
+                      return (
+                        <div className="mt-1 text-sm text-gray-600 space-y-1">
+                          {clientInfo.email && (
+                            <div className="flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              {clientInfo.email}
+                            </div>
+                          )}
+                          {clientInfo.phone && (
+                            <div className="flex items-center gap-1">
+                              <Phone className="h-3 w-3" />
+                              {clientInfo.phone}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div>
                     <label className="text-sm font-medium text-gray-500">Commande associée</label>
-                    {shipment.commandes ? (
+                    {shipment?.commande ? (
                       <Link
-                        href={`/commandes/${shipment.commandes.id}`}
+                        href={`/commandes/${shipment.commande.id}`}
                         className="font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1"
                       >
                         <Eye className="h-3 w-3" />
-                        #{shipment.commandes.numero_commande}
+                        #{shipment.commande.numero_commande}
                       </Link>
                     ) : (
                       <p className="font-medium text-gray-400">Non liée</p>
@@ -406,7 +412,7 @@ export default function ShipmentDetailPage({ params }: ShipmentDetailPageProps) 
                 {shipment.statut === 'verifiee' && (
                   <Link href={`/shipments/${shipment.id}/expedition`}>
                     <Button variant="outline" size="sm" className="w-full">
-                      Interface d'expédition
+                      Interface d&apos;expédition
                     </Button>
                   </Link>
                 )}

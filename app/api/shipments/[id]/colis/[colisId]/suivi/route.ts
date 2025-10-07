@@ -72,7 +72,7 @@ export async function PUT(
     }
 
     // Mise à jour du numéro de suivi et du statut
-    const updateData: any = {
+    const updateData: Partial<import('@/src/types').ShipmentColis> & Record<string, unknown> = {
       numero_suivi_chronopost: body.numero_suivi_chronopost,
       updated_at: new Date().toISOString()
     }

@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Separator } from '@/components/ui/separator'
 import {
   Tabs,
   TabsContent,
@@ -21,7 +20,7 @@ import {
   Hash,
   Box
 } from 'lucide-react'
-import { useShipmentById, useUpdateShipmentStatus } from '@/hooks/useShipments'
+import { useShipment, useUpdateShipmentStatus } from '@/hooks/useShipments'
 import { useShipmentProduits } from '@/hooks/useShipmentProduits'
 import { useShipmentColis } from '@/hooks/useShipmentColis'
 import { ShipmentStatus } from '@/src/types'
@@ -52,7 +51,8 @@ export default function PreparationInterface({
   shipmentId,
   className
 }: PreparationInterfaceProps) {
-  const { data: shipment, isLoading: shipmentLoading } = useShipmentById(shipmentId)
+  const { data: shipmentResponse, isLoading: shipmentLoading } = useShipment(shipmentId)
+  const shipment = shipmentResponse?.data
   const { data: produits, isLoading: produitsLoading } = useShipmentProduits(shipmentId)
   const { data: colis, isLoading: colisLoading } = useShipmentColis(shipmentId)
   const updateStatus = useUpdateShipmentStatus()
@@ -62,16 +62,16 @@ export default function PreparationInterface({
 
   // Initialiser les données de préparation
   useEffect(() => {
-    if (colis && produits) {
-      const colisData: ColisItem[] = colis.map(c => ({
+    if (colis?.data && produits) {
+      const colisData: ColisItem[] = colis.data.map(c => ({
         id: c.id,
         numero_colis: c.numero_colis,
         checked: false,
         produits: produits.map(p => ({
           id: p.id,
-          produit_id: p.produit_id,
-          nom: p.nom,
-          quantite: p.quantite,
+          produit_id: parseInt(p.commande_produit?.id || '0'),
+          nom: p.commande_produit?.nom_produit || 'Produit inconnu',
+          quantite: p.quantite_expediee,
           checked: false
         }))
       }))
@@ -145,11 +145,11 @@ export default function PreparationInterface({
 
       await updateStatus.mutateAsync({
         shipmentId,
-        status: 'pret_verification' as ShipmentStatus
+        statut: 'preparee' as ShipmentStatus
       })
 
       toast.success('Préparation validée avec succès')
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de la validation de la préparation')
     }
   }
@@ -179,10 +179,10 @@ export default function PreparationInterface({
                 Préparation Expédition #{shipmentId}
               </CardTitle>
               <div className="flex items-center gap-4 mt-2">
-                {shipment?.preparateur_nom && (
+                {shipment?.preparateur && (
                   <Badge variant="outline" className="flex items-center gap-1">
                     <User className="h-3 w-3" />
-                    Préparateur: {shipment.preparateur_nom}
+                    Préparateur: {shipment?.preparateur}
                   </Badge>
                 )}
                 <Badge

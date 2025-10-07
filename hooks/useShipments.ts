@@ -38,7 +38,7 @@ export const useShipments = (filters?: UseShipmentsFilters) => {
   });
 };
 
-export const useShipment = (shipmentId: number | null) => {
+export const useShipment = (shipmentId: string | number | null) => {
   return useQuery({
     queryKey: ['shipment', shipmentId],
     queryFn: async (): Promise<{ data: ShipmentWithDetails }> => {

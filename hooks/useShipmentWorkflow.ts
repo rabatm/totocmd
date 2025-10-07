@@ -245,7 +245,7 @@ export const useShipmentWorkflow = (shipment: ShipmentWithDetails) => {
         actions.push({
           key: 'start-preparation',
           label: 'Démarrer la préparation',
-          action: startPreparation
+          action: () => startPreparation()
         });
         break;
 
@@ -254,7 +254,7 @@ export const useShipmentWorkflow = (shipment: ShipmentWithDetails) => {
           {
             key: 'complete-preparation',
             label: 'Terminer la préparation',
-            action: completePreparation
+            action: () => completePreparation()
           },
           {
             key: 'return-draft',
@@ -270,7 +270,7 @@ export const useShipmentWorkflow = (shipment: ShipmentWithDetails) => {
           {
             key: 'complete-verification',
             label: 'Valider la vérification',
-            action: completeVerification
+            action: () => completeVerification()
           },
           {
             key: 'return-preparation',
@@ -286,7 +286,7 @@ export const useShipmentWorkflow = (shipment: ShipmentWithDetails) => {
           {
             key: 'finalize',
             label: 'Finaliser l\'expédition',
-            action: finalizeShipment
+            action: () => finalizeShipment('', undefined)
           },
           {
             key: 'return-preparation',
@@ -301,7 +301,7 @@ export const useShipmentWorkflow = (shipment: ShipmentWithDetails) => {
         actions.push({
           key: 'mark-transit',
           label: 'Marquer en transit',
-          action: markInTransit,
+          action: () => markInTransit(),
           variant: 'secondary' as const
         });
         break;
@@ -310,7 +310,7 @@ export const useShipmentWorkflow = (shipment: ShipmentWithDetails) => {
         actions.push({
           key: 'mark-delivered',
           label: 'Marquer comme livrée',
-          action: markDelivered,
+          action: () => markDelivered(),
           variant: 'secondary' as const
         });
         break;
